@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">var dataUtil = require(&quot;../../utils/data_structure_util&quot;);
+
+var fixClipWithShadow = require(&quot;../../utils/fix_clip_with_shadow&quot;);
+
+var _constants = require(&quot;../../utils/constants&quot;);
+
+var mathSin = _constants.mathSin;
+var mathCos = _constants.mathCos;
+var mathMax = _constants.mathMax;
+var PI2 = _constants.PI2;
+
+var Shape = require(&quot;./Shape&quot;);
+
+function _typeof(obj) { &quot;@babel/helpers - typeof&quot;; if (typeof Symbol === &quot;function&quot; &amp;&amp; typeof Symbol.iterator === &quot;symbol&quot;) { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj &amp;&amp; typeof Symbol === &quot;function&quot; &amp;&amp; obj.constructor === Symbol &amp;&amp; obj !== Symbol.prototype ? &quot;symbol&quot; : typeof obj; }; } return _typeof(obj); }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError(&quot;Cannot call a class as a function&quot;); } }
+
+function _defineProperties(target, props) { for (var i = 0; i &lt; props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if (&quot;value&quot; in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _possibleConstructorReturn(self, call) { if (call &amp;&amp; (_typeof(call) === &quot;object&quot; || typeof call === &quot;function&quot;)) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError(&quot;this hasn&#39;t been initialised - super() hasn&#39;t been called&quot;); } return self; }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== &quot;function&quot; &amp;&amp; superClass !== null) { throw new TypeError(&quot;Super expression must either be null or a function&quot;); } subClass.prototype = Object.create(superClass &amp;&amp; superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+<span id='fishTopo-graphic-shape-Sector'>/**
+</span> * @class fishTopo.graphic.shape.Sector 
+ * 扇形
+ * @docauthor 大漠穷秋 &lt;damoqiongqiu@126.com&gt;
+ */
+var Sector =
+/*#__PURE__*/
+function (_Shape) {
+  _inherits(Sector, _Shape);
+
+<span id='fishTopo-graphic-shape-Sector-method-constructor'>  /**
+</span>   * @method constructor Sector
+   * @param {Object} options 
+   */
+  function Sector(options) {
+    var _this;
+
+    _classCallCheck(this, Sector);
+
+    _this = _possibleConstructorReturn(this, _getPrototypeOf(Sector).call(this, dataUtil.merge({
+      shape: {
+        cx: 0,
+        cy: 0,
+        r0: 0,
+        r: 0,
+        startAngle: 0,
+        endAngle: PI2,
+        clockwise: true
+      }
+    }, options, true)));
+<span id='fishTopo-graphic-shape-Sector-property-type'>    /**
+</span>     * @property {String} type
+     */
+
+    _this.type = &#39;sector&#39;;
+    _this.render = fixClipWithShadow(Shape.prototype.render);
+    return _this;
+  }
+<span id='fishTopo-graphic-shape-Sector-method-buildPath'>  /**
+</span>   * @method buildPath
+   * 绘制元素路径
+   * @param {Object} ctx 
+   * @param {String} shape 
+   */
+
+
+  _createClass(Sector, [{
+    key: &quot;buildPath&quot;,
+    value: function buildPath(ctx, shape) {
+      var x = shape.cx;
+      var y = shape.cy;
+      var r0 = mathMax(shape.r0 || 0, 0);
+      var r = mathMax(shape.r, 0);
+      var startAngle = shape.startAngle;
+      var endAngle = shape.endAngle;
+      var clockwise = shape.clockwise;
+      var unitX = mathCos(startAngle);
+      var unitY = mathSin(startAngle);
+      ctx.moveTo(unitX * r0 + x, unitY * r0 + y);
+      ctx.lineTo(unitX * r + x, unitY * r + y);
+      ctx.arc(x, y, r, startAngle, endAngle, !clockwise);
+      ctx.lineTo(mathCos(endAngle) * r0 + x, mathSin(endAngle) * r0 + y);
+
+      if (r0 !== 0) {
+        ctx.arc(x, y, r0, endAngle, startAngle, clockwise);
+      }
+
+      ctx.closePath();
+    }
+  }]);
+
+  return Sector;
+}(Shape);
+
+module.exports = Sector;</pre>
+</body>
+</html>

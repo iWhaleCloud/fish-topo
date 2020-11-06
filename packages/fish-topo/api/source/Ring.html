@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">var _constants = require(&quot;../../utils/constants&quot;);
+
+var PI2 = _constants.PI2;
+
+var dataUtil = require(&quot;../../utils/data_structure_util&quot;);
+
+var Shape = require(&quot;./Shape&quot;);
+
+function _typeof(obj) { &quot;@babel/helpers - typeof&quot;; if (typeof Symbol === &quot;function&quot; &amp;&amp; typeof Symbol.iterator === &quot;symbol&quot;) { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj &amp;&amp; typeof Symbol === &quot;function&quot; &amp;&amp; obj.constructor === Symbol &amp;&amp; obj !== Symbol.prototype ? &quot;symbol&quot; : typeof obj; }; } return _typeof(obj); }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError(&quot;Cannot call a class as a function&quot;); } }
+
+function _defineProperties(target, props) { for (var i = 0; i &lt; props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if (&quot;value&quot; in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _possibleConstructorReturn(self, call) { if (call &amp;&amp; (_typeof(call) === &quot;object&quot; || typeof call === &quot;function&quot;)) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError(&quot;this hasn&#39;t been initialised - super() hasn&#39;t been called&quot;); } return self; }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== &quot;function&quot; &amp;&amp; superClass !== null) { throw new TypeError(&quot;Super expression must either be null or a function&quot;); } subClass.prototype = Object.create(superClass &amp;&amp; superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+<span id='fishTopo-graphic-shape-Ring'>/**
+</span> * @class fishTopo.graphic.shape.Ring 
+ * 圆环
+ * @docauthor 大漠穷秋 &lt;damoqiongqiu@126.com&gt;
+ */
+var Ring =
+/*#__PURE__*/
+function (_Shape) {
+  _inherits(Ring, _Shape);
+
+<span id='fishTopo-graphic-shape-Ring-method-constructor'>  /**
+</span>   * @method constructor Ring
+   * @param {Object} options 
+   */
+  function Ring(options) {
+    var _this;
+
+    _classCallCheck(this, Ring);
+
+    _this = _possibleConstructorReturn(this, _getPrototypeOf(Ring).call(this, dataUtil.merge({
+      shape: {
+        cx: 0,
+        cy: 0,
+        r: 0,
+        r0: 0
+      }
+    }, options, true)));
+<span id='fishTopo-graphic-shape-Ring-property-type'>    /**
+</span>     * @property {String} type
+     */
+
+    _this.type = &#39;ring&#39;;
+    return _this;
+  }
+<span id='fishTopo-graphic-shape-Ring-method-buildPath'>  /**
+</span>   * @method buildPath
+   * 绘制元素路径
+   * @param {Object} ctx 
+   * @param {String} shape 
+   */
+
+
+  _createClass(Ring, [{
+    key: &quot;buildPath&quot;,
+    value: function buildPath(ctx, shape) {
+      var x = shape.cx;
+      var y = shape.cy;
+      ctx.moveTo(x + shape.r, y);
+      ctx.arc(x, y, shape.r, 0, PI2, false);
+      ctx.moveTo(x + shape.r0, y);
+      ctx.arc(x, y, shape.r0, 0, PI2, true);
+    }
+  }]);
+
+  return Ring;
+}(Shape);
+
+module.exports = Ring;</pre>
+</body>
+</html>

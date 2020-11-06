@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">var fixShadow = require(&quot;../utils/fix_shadow&quot;);
+
+var _constants = require(&quot;../utils/constants&quot;);
+
+var ContextCachedBy = _constants.ContextCachedBy;
+var mathMin = _constants.mathMin;
+
+var dataUtil = require(&quot;../utils/data_structure_util&quot;);
+
+var RadialGradient = require(&quot;../graphic/gradient/RadialGradient&quot;);
+
+var LinearGradient = require(&quot;../graphic/gradient/LinearGradient&quot;);
+
+/* eslint-disable no-prototype-builtins */
+
+<span id='fishTopo-graphic-Style'>/**
+</span> * @class fishTopo.graphic.Style
+ * 
+ * @docauthor 大漠穷秋 &lt;damoqiongqiu@126.com&gt;
+ */
+var STYLE_COMMON_PROPS = [[&#39;shadowBlur&#39;, 0], [&#39;shadowOffsetX&#39;, 0], [&#39;shadowOffsetY&#39;, 0], [&#39;shadowColor&#39;, &#39;#000&#39;], [&#39;lineCap&#39;, &#39;butt&#39;], [&#39;lineJoin&#39;, &#39;miter&#39;], [&#39;miterLimit&#39;, 10]];
+
+function createLinearGradient(ctx, obj, rect) {
+  var x = obj.x == null ? 0 : obj.x;
+  var x2 = obj.x2 == null ? 1 : obj.x2;
+  var y = obj.y == null ? 0 : obj.y;
+  var y2 = obj.y2 == null ? 0 : obj.y2;
+
+  if (!obj.global) {
+    x = x * rect.width + rect.x1;
+    x2 = x2 * rect.width + rect.x1;
+    y = y * rect.height + rect.y1;
+    y2 = y2 * rect.height + rect.y1;
+  } // Fix NaN when rect is Infinity
+
+
+  x = isNaN(x) ? 0 : x;
+  x2 = isNaN(x2) ? 1 : x2;
+  y = isNaN(y) ? 0 : y;
+  y2 = isNaN(y2) ? 0 : y2;
+  var canvasGradient = ctx.createLinearGradient(x, y, x2, y2);
+  return canvasGradient;
+}
+
+function createRadialGradient(ctx, obj, rect) {
+  var width = rect.width;
+  var height = rect.height;
+  var min = mathMin(width, height);
+  var x = obj.x == null ? 0.5 : obj.x;
+  var y = obj.y == null ? 0.5 : obj.y;
+  var r = obj.r == null ? 0.5 : obj.r;
+
+  if (!obj.global) {
+    x = x * width + rect.x1;
+    y = y * height + rect.y1;
+    r = r * min;
+  }
+
+  var canvasGradient = ctx.createRadialGradient(x, y, 0, x, y, r);
+  return canvasGradient;
+}
+
+var Style = function Style(opts) {
+  if (opts &amp;&amp; dataUtil.isObject(opts.fill)) {
+    if (opts.fill.type === &#39;radial&#39;) {
+      this.fill = new RadialGradient(opts.fill.x || 0.5, opts.fill.y || 0.5, opts.fill.r || 0.5, opts.fill.colorStops || [], opts.fill.globalCoord || false);
+    } else if (opts.fill.type === &#39;linear&#39;) {
+      this.fill = new LinearGradient(opts.fill.x || 0, opts.fill.y || 0, opts.fill.x1 || 1, opts.fill.y1 || 0, opts.fill.colorStops || [], opts.fill.globalCoord || false);
+    }
+  }
+
+  this.extendStyle(opts, false);
+};
+
+Style.prototype = {
+  constructor: Style,
+
+<span id='fishTopo-graphic-Style-property-fill'>  /**
+</span>   * @property {String} fill
+   */
+  fill: &#39;#000&#39;,
+
+<span id='fishTopo-graphic-Style-property-stroke'>  /**
+</span>   * @property {String} stroke
+   */
+  stroke: null,
+
+<span id='fishTopo-graphic-Style-property-opacity'>  /**
+</span>   * @property {Number} opacity
+   */
+  opacity: 1,
+
+<span id='fishTopo-graphic-Style-property-fillOpacity'>  /**
+</span>   * @property {Number} fillOpacity
+   */
+  fillOpacity: null,
+
+<span id='fishTopo-graphic-Style-property-strokeOpacity'>  /**
+</span>   * @property {Number} strokeOpacity
+   */
+  strokeOpacity: null,
+
+<span id='fishTopo-graphic-Style-property-lineDash'>  /**
+</span>   * @property {Array&lt;Number&gt;|Boolean} lineDash
+   * `true` is not supported.
+   * `false`/`null`/`undefined` are the same.
+   * `false` is used to remove lineDash in some
+   * case that `null`/`undefined` can not be set.
+   * (e.g., emphasis.lineStyle in echarts)
+   */
+  lineDash: null,
+
+<span id='fishTopo-graphic-Style-property-lineDashOffset'>  /**
+</span>   * @property {Number} lineDashOffset
+   */
+  lineDashOffset: 0,
+
+<span id='fishTopo-graphic-Style-property-shadowBlur'>  /**
+</span>   * @property {Number} shadowBlur
+   */
+  shadowBlur: 0,
+
+<span id='fishTopo-graphic-Style-property-shadowOffsetX'>  /**
+</span>   * @property {Number} shadowOffsetX
+   */
+  shadowOffsetX: 0,
+
+<span id='fishTopo-graphic-Style-property-shadowOffsetY'>  /**
+</span>   * @property {Number} shadowOffsetY
+   */
+  shadowOffsetY: 0,
+
+<span id='fishTopo-graphic-Style-property-lineWidth'>  /**
+</span>   * @property {Number} lineWidth
+   */
+  lineWidth: 1,
+
+<span id='fishTopo-graphic-Style-property-strokeNoScale'>  /**
+</span>   * @property {Boolean} strokeNoScale
+   * If stroke ignore scale
+   */
+  strokeNoScale: false,
+  // Bounding rect text configuration
+  // Not affected by element transform
+
+<span id='fishTopo-graphic-Style-property-text'>  /**
+</span>   * @property {String} text
+   */
+  text: null,
+
+<span id='fishTopo-graphic-Style-property-font'>  /**
+</span>   * @property {String} font
+   * If `fontSize` or `fontFamily` exists, `font` will be reset by
+   * `fontSize`, `fontStyle`, `fontWeight`, `fontFamily`.
+   * So do not visit it directly in upper application (like echarts),
+   * but use `contain/text_util#makeFont` instead.
+   */
+  font: null,
+
+<span id='fishTopo-graphic-Style-property-textFont'>  /**
+</span>   * @deprecated
+   * @property {String} textFont
+   * The same as font. Use font please.
+   */
+  textFont: null,
+
+<span id='fishTopo-graphic-Style-property-fontStyle'>  /**
+</span>   * @property {String} fontStyle
+   * It helps merging respectively, rather than parsing an entire font string.
+   */
+  fontStyle: null,
+
+<span id='fishTopo-graphic-Style-property-fontWeight'>  /**
+</span>   * @property {String} fontWeight
+   * It helps merging respectively, rather than parsing an entire font string.
+   */
+  fontWeight: null,
+
+<span id='fishTopo-graphic-Style-property-fontSize'>  /**
+</span>   * @property {Number} fontSize
+   * It helps merging respectively, rather than parsing an entire font string.
+   * Should be 12 but not &#39;12px&#39;.
+   */
+  fontSize: null,
+
+<span id='fishTopo-graphic-Style-property-fontFamily'>  /**
+</span>   * @property {String} fontFamily
+   * It helps merging respectively, rather than parsing an entire font string.
+   */
+  fontFamily: null,
+
+<span id='fishTopo-graphic-Style-property-textTag'>  /**
+</span>   * @property {String} textTag
+   * Reserved for special functinality, like &#39;hr&#39;.
+   */
+  textTag: null,
+
+<span id='fishTopo-graphic-Style-property-textFill'>  /**
+</span>   * @property {String} textFill
+   */
+  textFill: &#39;#000&#39;,
+
+<span id='fishTopo-graphic-Style-property-textStroke'>  /**
+</span>   * @property {String} textStroke
+   */
+  textStroke: null,
+
+<span id='fishTopo-graphic-Style-property-textWidth'>  /**
+</span>   * @property {Number} textWidth
+   */
+  textWidth: null,
+
+<span id='fishTopo-graphic-Style-property-textHeight'>  /**
+</span>   * @property {Number} textHeight
+   * Only for textBackground.
+   */
+  textHeight: null,
+
+<span id='fishTopo-graphic-Style-property-textStrokeWidth'>  /**
+</span>   * @property {Number} textStrokeWidth
+   * textStroke may be set as some color as a default
+   * value in upper applicaion, where the default value
+   * of textStrokeWidth should be 0 to make sure that
+   * user can choose to do not use text stroke.
+   */
+  textStrokeWidth: 0,
+
+<span id='fishTopo-graphic-Style-property-textLineHeight'>  /**
+</span>   * @property {Number} textLineHeight
+   */
+  textLineHeight: null,
+
+<span id='fishTopo-graphic-Style-property-textPosition'>  /**
+</span>   * @property {string|Array&lt;Number&gt;} textPosition
+   * &#39;inside&#39;, &#39;left&#39;, &#39;right&#39;, &#39;top&#39;, &#39;bottom&#39;
+   * [x, y]
+   * Based on x, y of rect.
+   */
+  textPosition: &#39;inside&#39;,
+
+<span id='fishTopo-graphic-Style-property-textRect'>  /**
+</span>   * @property {Object} textRect
+   * If not specified, use the boundingRect of a `displayable`.
+   */
+  textRect: null,
+
+<span id='fishTopo-graphic-Style-property-textOffset'>  /**
+</span>   * @property {Array&lt;Number&gt;} textOffset
+   * [x, y]
+   */
+  textOffset: null,
+
+<span id='fishTopo-graphic-Style-property-textAlign'>  /**
+</span>   * @property {String} textAlign
+   */
+  textAlign: null,
+
+<span id='fishTopo-graphic-Style-property-textVerticalAlign'>  /**
+</span>   * @property {String} textVerticalAlign
+   */
+  textVerticalAlign: null,
+
+<span id='fishTopo-graphic-Style-property-textDistance'>  /**
+</span>   * @property {Number} textDistance
+   */
+  textDistance: 5,
+
+<span id='fishTopo-graphic-Style-property-textShadowColor'>  /**
+</span>   * @property {String} textShadowColor
+   */
+  textShadowColor: &#39;transparent&#39;,
+
+<span id='fishTopo-graphic-Style-property-textShadowBlur'>  /**
+</span>   * @property {Number} textShadowBlur
+   */
+  textShadowBlur: 0,
+
+<span id='fishTopo-graphic-Style-property-textShadowOffsetX'>  /**
+</span>   * @property {Number} textShadowOffsetX
+   */
+  textShadowOffsetX: 0,
+
+<span id='fishTopo-graphic-Style-property-textShadowOffsetY'>  /**
+</span>   * @property {Number} textShadowOffsetY
+   */
+  textShadowOffsetY: 0,
+
+<span id='fishTopo-graphic-Style-property-textBoxShadowColor'>  /**
+</span>   * @property {String} textBoxShadowColor
+   */
+  textBoxShadowColor: &#39;transparent&#39;,
+
+<span id='fishTopo-graphic-Style-property-textBoxShadowBlur'>  /**
+</span>   * @property {Number} textBoxShadowBlur
+   */
+  textBoxShadowBlur: 0,
+
+<span id='fishTopo-graphic-Style-property-textBoxShadowOffsetX'>  /**
+</span>   * @property {Number} textBoxShadowOffsetX
+   */
+  textBoxShadowOffsetX: 0,
+
+<span id='fishTopo-graphic-Style-property-textBoxShadowOffsetY'>  /**
+</span>   * @property {Number} textBoxShadowOffsetY
+   */
+  textBoxShadowOffsetY: 0,
+
+<span id='fishTopo-graphic-Style-property-transformText'>  /**
+</span>   * @property {Boolean} transformText
+   * Whether transform text.
+   * Only available in Path and Image element,
+   * where the text is called as `RectText`.
+   */
+  transformText: false,
+
+<span id='fishTopo-graphic-Style-property-textRotation'>  /**
+</span>   * @property {Number} textRotation
+   * Text rotate around position of Path or Image.
+   * The origin of the rotation can be specified by `textOrigin`.
+   * Only available in Path and Image element,
+   * where the text is called as `RectText`.
+   */
+  textRotation: 0,
+
+<span id='fishTopo-graphic-Style-property-textOrigin'>  /**
+</span>   * @property {String|Array&lt;Number&gt;} textOrigin
+   * Text origin of text rotation.
+   * Useful in the case like label rotation of circular symbol.
+   * Only available in Path and Image element, where the text is called
+   * as `RectText` and the element is called as &quot;host element&quot;.
+   * The value can be:
+   * + If specified as a coordinate like `[10, 40]`, it is the `[x, y]`
+   * base on the left-top corner of the rect of its host element.
+   * + If specified as a string `center`, it is the center of the rect of
+   * its host element.
+   * + By default, this origin is the `textPosition`.
+   */
+  textOrigin: null,
+
+<span id='fishTopo-graphic-Style-property-textBackgroundColor'>  /**
+</span>   * @property {String} textBackgroundColor
+   */
+  textBackgroundColor: null,
+
+<span id='fishTopo-graphic-Style-property-textBorderColor'>  /**
+</span>   * @property {String} textBorderColor
+   */
+  textBorderColor: null,
+
+<span id='fishTopo-graphic-Style-property-textBorderWidth'>  /**
+</span>   * @property {Number} textBorderWidth
+   */
+  textBorderWidth: 0,
+
+<span id='fishTopo-graphic-Style-property-textBorderRadius'>  /**
+</span>   * @property {Number} textBorderRadius
+   */
+  textBorderRadius: 0,
+
+<span id='fishTopo-graphic-Style-property-textPadding'>  /**
+</span>   * @property {number|Array&lt;Number&gt;} textPadding
+   * Can be `2` or `[2, 4]` or `[2, 3, 4, 5]`
+   */
+  textPadding: null,
+
+<span id='fishTopo-graphic-Style-property-rich'>  /**
+</span>   * @property {Object} rich
+   * Text styles for rich text.
+   */
+  rich: null,
+
+<span id='fishTopo-graphic-Style-property-truncate'>  /**
+</span>   * @property {Object} truncate
+   * {outerWidth, outerHeight, ellipsis, placeholder}
+   */
+  truncate: null,
+
+<span id='fishTopo-graphic-Style-property-blend'>  /**
+</span>   * @property {String} blend
+   * https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/globalCompositeOperation
+   */
+  blend: null,
+
+<span id='fishTopo-graphic-Style-method-bind'>  /**
+</span>   * @method bind
+   * @param {CanvasRenderingContext2D} ctx
+   * @param {Element} el
+   * @param {Element} prevEl
+   */
+  bind: function bind(ctx, el, prevEl) {
+    var style = this;
+    var prevStyle = prevEl &amp;&amp; prevEl.style; // If no prevStyle, it means first draw.
+    // Only apply cache if the last time cachced by this function.
+
+    var notCheckCache = !prevStyle || ctx.__attrCachedBy !== ContextCachedBy.STYLE_BIND;
+    ctx.__attrCachedBy = ContextCachedBy.STYLE_BIND;
+
+    for (var i = 0; i &lt; STYLE_COMMON_PROPS.length; i++) {
+      var prop = STYLE_COMMON_PROPS[i];
+      var styleName = prop[0];
+
+      if (notCheckCache || style[styleName] !== prevStyle[styleName]) {
+        // FIXME Invalid property value will cause style leak from previous element.
+        ctx[styleName] = fixShadow(ctx, styleName, style[styleName] || prop[1]);
+      }
+    }
+
+    if (notCheckCache || style.fill !== prevStyle.fill) {
+      ctx.fillStyle = style.fill;
+    }
+
+    if (notCheckCache || style.stroke !== prevStyle.stroke) {
+      ctx.strokeStyle = style.stroke;
+    }
+
+    if (notCheckCache || style.opacity !== prevStyle.opacity) {
+      ctx.globalAlpha = style.opacity == null ? 1 : style.opacity;
+    }
+
+    if (notCheckCache || style.blend !== prevStyle.blend) {
+      ctx.globalCompositeOperation = style.blend || &#39;source-over&#39;;
+    }
+
+    if (this.hasStroke()) {
+      var lineWidth = style.lineWidth;
+      ctx.lineWidth = lineWidth / (this.strokeNoScale &amp;&amp; el &amp;&amp; el.getLineScale ? el.getLineScale() : 1);
+    }
+  },
+
+<span id='fishTopo-graphic-Style-method-hasFill'>  /**
+</span>   * @method hasFill
+   */
+  hasFill: function hasFill() {
+    var fill = this.fill;
+    return fill != null &amp;&amp; fill !== &#39;none&#39;;
+  },
+
+<span id='fishTopo-graphic-Style-method-hasStroke'>  /**
+</span>   * @method hasStroke
+   */
+  hasStroke: function hasStroke() {
+    var stroke = this.stroke;
+    return stroke != null &amp;&amp; stroke !== &#39;none&#39; &amp;&amp; this.lineWidth &gt; 0;
+  },
+
+<span id='fishTopo-graphic-Style-method-extendStyle'>  /**
+</span>   * @method extendStyle
+   * Extend from other style
+   * @param {Style} otherStyle
+   * @param {Boolean} overwrite true: overwrirte any way.
+   *                            false: overwrite only when !target.hasOwnProperty
+   *                            others: overwrite when property is not null/undefined.
+   */
+  extendStyle: function extendStyle(otherStyle, overwrite) {
+    if (otherStyle) {
+      for (var name in otherStyle) {
+        if (otherStyle.hasOwnProperty(name) &amp;&amp; (overwrite === true || (overwrite === false ? !this.hasOwnProperty(name) : otherStyle[name] != null))) {
+          this[name] = otherStyle[name];
+        }
+      }
+    }
+  },
+
+<span id='fishTopo-graphic-Style-method-set'>  /**
+</span>   * @method set
+   * Batch setting style with a given object
+   * @param {Object|String} obj
+   * @param {*} [obj]
+   */
+  set: function set(obj, value) {
+    if (typeof obj === &#39;string&#39;) {
+      this[obj] = value;
+    } else {
+      this.extendStyle(obj, true);
+    }
+  },
+
+<span id='fishTopo-graphic-Style-method-clone'>  /**
+</span>   * @method clone
+   * @return {Style}
+   */
+  clone: function clone() {
+    var newStyle = new this.constructor();
+    newStyle.extendStyle(this, true);
+    return newStyle;
+  },
+
+<span id='fishTopo-graphic-Style-method-getGradient'>  /**
+</span>   * @method getGradient
+   * @param {*} ctx 
+   * @param {*} obj 
+   * @param {*} rect 
+   */
+  getGradient: function getGradient(ctx, obj, rect) {
+    var method = obj.type === &#39;radial&#39; ? createRadialGradient : createLinearGradient;
+    var canvasGradient = method(ctx, obj, rect);
+    var colorStops = obj.colorStops;
+
+    for (var i = 0; i &lt; colorStops.length; i++) {
+      canvasGradient.addColorStop(colorStops[i].offset, colorStops[i].color);
+    }
+
+    return canvasGradient;
+  }
+};
+var styleProto = Style.prototype;
+
+for (var i = 0; i &lt; STYLE_COMMON_PROPS.length; i++) {
+  var prop = STYLE_COMMON_PROPS[i];
+
+  if (!(prop[0] in styleProto)) {
+    styleProto[prop[0]] = prop[1];
+  }
+} // Provide for others
+
+
+Style.getGradient = styleProto.getGradient;
+var _default = Style;
+module.exports = _default;</pre>
+</body>
+</html>

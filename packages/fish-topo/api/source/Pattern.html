@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError(&quot;Cannot call a class as a function&quot;); } }
+
+function _defineProperties(target, props) { for (var i = 0; i &lt; props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if (&quot;value&quot; in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+<span id='fishTopo-graphic-Pattern'>/**
+</span> * @class fishTopo.graphic.Pattern
+ * 
+ * Pattern
+ * 
+ * 图案
+ * 
+ * @docauthor 大漠穷秋 &lt;damoqiongqiu@126.com&gt;
+ */
+var Pattern =
+/*#__PURE__*/
+function () {
+<span id='fishTopo-graphic-Pattern-method-constructor'>  /**
+</span>   * @method  constructor Pattern
+   * @param {*} image 
+   * @param {*} repeat 
+   */
+  function Pattern(image, repeat) {
+    _classCallCheck(this, Pattern);
+
+    // Should do nothing more in this constructor. Because gradient can be
+    // declard by `color: {image: ...}`, where this constructor will not be called.
+    this.image = image;
+    this.repeat = repeat;
+    this.type = &#39;pattern&#39;;
+<span id='fishTopo-graphic-Pattern-property-type'>    /**
+</span>     * @property {String} type
+     */
+
+    this.type = &#39;pattern&#39;;
+  }
+
+  _createClass(Pattern, [{
+    key: &quot;getCanvasPattern&quot;,
+    value: function getCanvasPattern(ctx) {
+      return ctx.createPattern(this.image, this.repeat || &#39;repeat&#39;);
+    }
+  }]);
+
+  return Pattern;
+}();
+
+var _default = Pattern;
+module.exports = _default;</pre>
+</body>
+</html>

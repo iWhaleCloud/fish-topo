@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">var dataUtil = require(&quot;../utils/data_structure_util&quot;);
+
+var Style = require(&quot;./Style&quot;);
+
+var _vector_util = require(&quot;../utils/vector_util&quot;);
+
+var vec2Copy = _vector_util.copy;
+
+/* eslint-disable no-prototype-builtins */
+
+<span id='fishTopo-graphic-GraphicStates'>/**
+</span> * @class fishTopo.graphic.GraphicStates
+ * 
+ * States machine for managing graphic states
+ * 
+ * @docauthor 大漠穷秋 &lt;damoqiongqiu@126.com&gt;
+ */
+var transitionProperties = [&#39;position&#39;, &#39;rotation&#39;, &#39;scale&#39;, &#39;style&#39;, &#39;shape&#39;];
+
+var TransitionObject = function TransitionObject(opts) {
+  if (typeof opts === &#39;string&#39;) {
+    this._fromStr(opts);
+  } else if (opts) {
+    opts.property &amp;&amp; (this.property = opts.property);
+    opts.duration != null &amp;&amp; (this.duration = opts.duration);
+    opts.easing &amp;&amp; (this.easing = opts.easing);
+    opts.delay &amp;&amp; (this.delay = opts.delay);
+  }
+
+  if (this.property !== &#39;*&#39;) {
+    this.property = this.property.split(&#39;,&#39;);
+  } else {
+    this.property = transitionProperties;
+  }
+};
+
+TransitionObject.prototype = {
+  constructor: TransitionObject,
+
+<span id='fishTopo-graphic-GraphicStates-property-property'>  /**
+</span>   * List of all transition properties. Splitted by comma. Must not have spaces in the string.
+   * e.g. &#39;position,style.color&#39;. &#39;*&#39; will match all the valid properties.
+   * @property {String}
+   * @default *
+   */
+  property: &#39;*&#39;,
+
+<span id='fishTopo-graphic-GraphicStates-property-easing'>  /**
+</span>   * @property {String}
+   * @default &#39;Linear&#39;
+   */
+  easing: &#39;Linear&#39;,
+
+<span id='fishTopo-graphic-GraphicStates-property-duration'>  /**
+</span>   * @property {Number}
+   * @default &#39;number&#39;
+   */
+  duration: 500,
+
+<span id='fishTopo-graphic-GraphicStates-property-delay'>  /**
+</span>   * @property {Number}
+   */
+  delay: 0,
+  _fromStr: function _fromStr(str) {
+    var arr = str.split(/\s+/g);
+    this.property = arr[0];
+    this.duration = +arr[1];
+    this.delay = +arr[2];
+    this.easing = arr[3];
+  }
+};
+<span id='fishTopo-graphic-GraphicStates-property-qlevel'>/**
+</span> * @method constructor GraphicStates
+ * @property {Number} [qlevel]
+ * @property {Number} [z]
+ * @property {Array&lt;Number&gt;} {position}
+ * @property {Array&lt;Number&gt;|number} {rotation}
+ * @property {Array&lt;Number&gt;} {scale}
+ * @property {Object} style
+ * @property {Function} onenter
+ * @property {Function} onleave
+ * @property {Function} ontransition
+ * @property {Array&lt;IGraphicStateTransition|string&gt;} transition Transition object or a string descriptor like &#39;* 30 0 Linear&#39;
+ */
+
+var GraphicStates = function GraphicStates(opts) {
+  opts = opts || {};
+  this._states = {};
+<span id='fishTopo-graphic-GraphicStates-property-_el'>  /**
+</span>   * @property _el
+   */
+
+  this._el = opts.el;
+  this._subStates = [];
+  this._transitionAnimationProcess = [];
+
+  if (opts.initialState) {
+    this._initialState = opts.initialState;
+  }
+
+  var optsStates = opts.states;
+
+  if (optsStates) {
+    for (var name in optsStates) {
+      if (optsStates.hasOwnProperty(name)) {
+        var state = optsStates[name];
+
+        this._addState(name, state);
+      }
+    }
+  }
+
+  this.setState(this._initialState);
+};
+
+GraphicStates.prototype = {
+  constructor: GraphicStates,
+
+<span id='fishTopo-graphic-GraphicStates-property-_initialState'>  /**
+</span>   * All other state will be extended from initial state
+   * @property {String}
+   * @private
+   */
+  _initialState: &#39;normal&#39;,
+
+<span id='fishTopo-graphic-GraphicStates-property-_currentState'>  /**
+</span>   * Current state
+   * @property {String}
+   * @private
+   */
+  _currentState: &#39;&#39;,
+  el: function el() {
+    return this._el;
+  },
+  _addState: function _addState(name, state) {
+    this._states[name] = state;
+
+    if (state.transition) {
+      state.transition = new TransitionObject(state.transition);
+    } // Extend from initial state
+
+
+    if (name !== this._initialState) {
+      this._extendFromInitial(state);
+    } else {
+      var el = this._el; // setState 的时候自带的 style 和 shape 都会被直接覆盖
+      // 所以这边先把自带的 style 和 shape 扩展到初始状态中
+
+      dataUtil.merge(state.style, el.style, false, false);
+
+      if (state.shape) {
+        dataUtil.merge(state.shape, el.shape, false, true);
+      } else {
+        state.shape = dataUtil.clone(el.shape, true);
+      }
+
+      for (var _name in this._states) {
+        if (this._states.hasOwnProperty(_name)) {
+          this._extendFromInitial(this._states[_name]);
+        }
+      }
+    }
+  },
+  _extendFromInitial: function _extendFromInitial(state) {
+    var initialState = this._states[this._initialState];
+
+    if (initialState &amp;&amp; state !== initialState) {
+      dataUtil.merge(state, initialState, false, true);
+    }
+  },
+  setState: function setState(name, silent) {
+    if (name === this._currentState &amp;&amp; !this.transiting()) {
+      return;
+    }
+
+    var state = this._states[name];
+
+    if (state) {
+      this._stopTransition();
+
+      if (!silent) {
+        var prevState = this._states[this._currentState];
+
+        if (prevState) {
+          prevState.onleave &amp;&amp; prevState.onleave.call(this);
+        }
+
+        state.onenter &amp;&amp; state.onenter.call(this);
+      }
+
+      this._currentState = name;
+
+      if (this._el) {
+        var el = this._el; // Setting attributes
+
+        if (state.qlevel != null) {
+          el.qlevel = state.qlevel;
+        }
+
+        if (state.z != null) {
+          el.z = state.z;
+        } // SRT
+
+
+        state.position &amp;&amp; vec2Copy(el.position, state.position);
+        state.scale &amp;&amp; vec2Copy(el.scale, state.scale);
+
+        if (state.rotation != null) {
+          el.rotation = state.rotation;
+        } // Style
+
+
+        if (state.style) {
+          var initialState = this._states[this._initialState];
+          el.style = new Style();
+
+          if (initialState) {
+            el.style.extendStyle(initialState.style, false);
+          }
+
+          if ( // Not initial state
+          name !== this._initialState // Not copied from initial state in _extendFromInitial method
+          &amp;&amp; initialState.style !== state.style) {
+            el.style.extendStyle(state.style, true);
+          }
+        }
+
+        if (state.shape) {
+          el.shape = dataUtil.clone(state.shape, true);
+        }
+
+        el.dirty();
+      }
+    }
+
+    for (var i = 0; i &lt; this._subStates.length; i++) {
+      this._subStates.setState(name);
+    }
+  },
+  getState: function getState() {
+    return this._currentState;
+  },
+  transitionState: function transitionState(target, done) {
+    if (target === this._currentState &amp;&amp; !this.transiting()) {
+      return;
+    }
+
+    var state = this._states[target];
+    var styleShapeReg = /$[style|shape]\./;
+    var self = this; // Animation 去重
+
+    var propPathMap = {};
+
+    if (state) {
+      self._stopTransition();
+
+      var el = self._el;
+
+      if (state.transition &amp;&amp; el &amp;&amp; el.__topo) {
+        // El can be animated
+        var transitionCfg = state.transition;
+        var property = transitionCfg.property;
+        var animatingCount = 0;
+
+        var animationDone = function animationDone() {
+          animatingCount--;
+
+          if (animatingCount === 0) {
+            self.setState(target);
+            done &amp;&amp; done();
+          }
+        };
+
+        for (var i = 0; i &lt; property.length; i++) {
+          var propName = property[i]; // Animating all the properties in style or shape
+
+          if (propName === &#39;style&#39; || propName === &#39;shape&#39;) {
+            if (state[propName]) {
+              for (var key in state[propName]) {
+                /* eslint-disable max-depth */
+                if (!state[propName].hasOwnProperty(key)) {
+                  continue;
+                }
+
+                var path = propName + &#39;.&#39; + key;
+
+                if (propPathMap[path]) {
+                  continue;
+                }
+                /* eslint-enable max-depth */
+
+
+                propPathMap[path] = 1;
+                animatingCount += self._animProp(state, propName, key, transitionCfg, animationDone);
+              }
+            }
+          } else {
+            if (propPathMap[propName]) {
+              continue;
+            }
+
+            propPathMap[propName] = 1; // Animating particular property in style or style
+
+            if (propName.match(styleShapeReg)) {
+              // remove &#39;style.&#39;, &#39;shape.&#39; prefix
+              var subProp = propName.slice(0, 5);
+              propName = propName.slice(6);
+              animatingCount += self._animProp(state, subProp, propName, transitionCfg, animationDone);
+            } else {
+              animatingCount += self._animProp(state, &#39;&#39;, propName, transitionCfg, animationDone);
+            }
+          }
+        } // No transition properties
+
+
+        if (animatingCount === 0) {
+          self.setState(target);
+          done &amp;&amp; done();
+        }
+      } else {
+        self.setState(target);
+        done &amp;&amp; done();
+      }
+    }
+
+    var subStates = self._subStates;
+
+    for (var _i = 0; _i &lt; subStates.length; _i++) {
+      subStates.transitionState(target);
+    }
+  },
+
+<span id='fishTopo-graphic-GraphicStates-method-_animProp'>  /**
+</span>   * Do transition animation of particular property
+   * @param {Object} state
+   * @param {String} subPropKey
+   * @param {String} key
+   * @param {Object} transitionCfg
+   * @param {Function} done
+   * @private
+   */
+  _animProp: function _animProp(state, subPropKey, key, transitionCfg, done) {
+    var el = this._el;
+    var stateObj = subPropKey ? state[subPropKey] : state;
+    var elObj = subPropKey ? el[subPropKey] : el;
+    var availableProp = stateObj &amp;&amp; key in stateObj &amp;&amp; elObj &amp;&amp; key in elObj;
+    var taps = this._transitionAnimationProcess;
+
+    if (availableProp) {
+      var obj = {};
+
+      if (stateObj[key] === elObj[key]) {
+        return 0;
+      }
+
+      obj[key] = stateObj[key];
+      var animationProcess = el.animate(subPropKey).when(transitionCfg.duration, obj).delay(transitionCfg.dealy).done(function () {
+        var idx = dataUtil.indexOf(taps, 1);
+
+        if (idx &gt; 0) {
+          taps.splice(idx, 1);
+        }
+
+        done();
+      }).start(transitionCfg.easing);
+      taps.push(animationProcess);
+      return 1;
+    }
+
+    return 0;
+  },
+  _stopTransition: function _stopTransition() {
+    var taps = this._transitionAnimationProcess;
+
+    for (var i = 0; i &lt; taps.length; i++) {
+      taps[i].stop();
+    }
+
+    taps.length = 0;
+  },
+  transiting: function transiting() {
+    return this._transitionAnimationProcess.length &gt; 0;
+  },
+  addSubStates: function addSubStates(states) {
+    this._subStates.push(states);
+  },
+  removeSubStates: function removeSubStates(states) {
+    var idx = dataUtil.indexOf(this._subStates, states);
+
+    if (idx &gt;= 0) {
+      this._subStates.splice(states, 1);
+    }
+  }
+};
+var _default = GraphicStates;
+module.exports = _default;</pre>
+</body>
+</html>

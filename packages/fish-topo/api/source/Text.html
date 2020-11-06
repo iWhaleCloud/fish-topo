@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">var Element = require(&quot;./Element&quot;);
+
+var textUtil = require(&quot;../utils/text_util&quot;);
+
+var _constants = require(&quot;../utils/constants&quot;);
+
+var ContextCachedBy = _constants.ContextCachedBy;
+
+function _typeof(obj) { &quot;@babel/helpers - typeof&quot;; if (typeof Symbol === &quot;function&quot; &amp;&amp; typeof Symbol.iterator === &quot;symbol&quot;) { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj &amp;&amp; typeof Symbol === &quot;function&quot; &amp;&amp; obj.constructor === Symbol &amp;&amp; obj !== Symbol.prototype ? &quot;symbol&quot; : typeof obj; }; } return _typeof(obj); }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError(&quot;Cannot call a class as a function&quot;); } }
+
+function _defineProperties(target, props) { for (var i = 0; i &lt; props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if (&quot;value&quot; in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _possibleConstructorReturn(self, call) { if (call &amp;&amp; (_typeof(call) === &quot;object&quot; || typeof call === &quot;function&quot;)) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError(&quot;this hasn&#39;t been initialised - super() hasn&#39;t been called&quot;); } return self; }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== &quot;function&quot; &amp;&amp; superClass !== null) { throw new TypeError(&quot;Super expression must either be null or a function&quot;); } subClass.prototype = Object.create(superClass &amp;&amp; superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+<span id='fishTopo-graphic-Text'>/**
+</span> * @class fishTopo.graphic.Text
+ * 
+ * @docauthor 大漠穷秋 &lt;damoqiongqiu@126.com&gt;
+ */
+var Text =
+/*#__PURE__*/
+function (_Element) {
+  _inherits(Text, _Element);
+
+<span id='fishTopo-graphic-Text-method-constructor'>  /**
+</span>   * @method constructor Text
+   * @param {Object} opts 
+   */
+  function Text(opts) {
+    var _this;
+
+    _classCallCheck(this, Text);
+
+    _this = _possibleConstructorReturn(this, _getPrototypeOf(Text).call(this, opts));
+<span id='fishTopo-graphic-Text-property-type'>    /**
+</span>     * @property {String} type
+     */
+
+    _this.type = &#39;text&#39;;
+    return _this;
+  }
+<span id='fishTopo-graphic-Text-method-render'>  /**
+</span>   * @method render
+   */
+
+
+  _createClass(Text, [{
+    key: &quot;render&quot;,
+    value: function render() {
+      var ctx = this.ctx;
+      var prevEl = this.prevEl;
+      var style = this.style; // Optimize, avoid normalize every time.
+
+      this.__dirty &amp;&amp; textUtil.normalizeTextStyle(style, true); // Use props with prefix &#39;text&#39;.
+
+      style.fill = null;
+      style.stroke = null;
+      style.shadowBlur = null;
+      style.shadowColor = null;
+      style.shadowOffsetX = null;
+      style.shadowOffsetY = null;
+      var text = style.text; // Convert to string
+
+      text != null &amp;&amp; (text += &#39;&#39;); // Do not apply style.bind in Text node. Because the real bind job
+      // is in textUtil.renderText, and performance of text render should
+      // be considered.
+      // style.bind(ctx, this, prevEl);
+
+      if (!textUtil.needDrawText(text, style)) {
+        // The current el.style is not applied
+        // and should not be used as cache.
+        ctx.__attrCachedBy = ContextCachedBy.NONE;
+        return;
+      }
+
+      this.applyTransform(ctx);
+      textUtil.renderText(this, ctx, text, style, null, prevEl);
+      this.restoreTransform(ctx);
+    }
+<span id='fishTopo-graphic-Text-method-getBoundingRect'>    /**
+</span>     * @method getBoundingRect
+     * Get bounding rect of this element, NOTE: 
+     * this method will return the bounding rect without transforming(translate/scale/rotate/skew). 
+     * However, direct modifications to the shape property will be reflected in the bouding-rect.
+     * For example,  if we modify this.shape.width directly, then the new width property will be calculated.
+     * 
+     * 
+     * 获取当前元素的边界矩形，注意：
+     * 此方法返回的是没有经过 transform(translate/scale/rotate/skew) 处理的边界矩形，但是对 shape 属性直接进行的修改会反映在获取的边界矩形上。
+     * 例如，用代码直接对 this.shape.width 进行赋值，那么在计算边界矩形时就会用新的 width 属性进行计算。
+     */
+
+  }, {
+    key: &quot;getBoundingRect&quot;,
+    value: function getBoundingRect() {
+      var style = this.style; // Optimize, avoid normalize every time.
+
+      this.__dirty &amp;&amp; textUtil.normalizeTextStyle(style, true);
+
+      if (!this.__boundingRect) {
+        var text = style.text;
+        text != null ? text += &#39;&#39; : text = &#39;&#39;;
+        var rect = textUtil.getBoundingRect(style.text + &#39;&#39;, style.font, style.textAlign, style.textVerticalAlign, style.textPadding, style.textLineHeight, style.rich);
+        rect.x1 += style.x || 0;
+        rect.y1 += style.y || 0;
+
+        if (textUtil.getStroke(style.textStroke, style.textStrokeWidth)) {
+          var w = style.textStrokeWidth;
+          rect.x1 -= w / 2;
+          rect.y1 -= w / 2;
+          rect.width += w;
+          rect.height += w;
+          rect.x2 = rect.x1 + rect.width;
+          rect.y2 = rect.y1 + rect.height;
+        }
+
+        this.__boundingRect = rect;
+      }
+
+      return this.__boundingRect;
+    }
+  }]);
+
+  return Text;
+}(Element);
+
+module.exports = Text;</pre>
+</body>
+</html>

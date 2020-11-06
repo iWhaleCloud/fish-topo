@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">var dataUtil = require(&quot;../utils/data_structure_util&quot;);
+
+var classUtil = require(&quot;../utils/class_util&quot;);
+
+var _event_util = require(&quot;../utils/event_util&quot;);
+
+var Dispatcher = _event_util.Dispatcher;
+
+var requestAnimationFrame = require(&quot;./request_animation_frame&quot;);
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError(&quot;Cannot call a class as a function&quot;); } }
+
+function _defineProperties(target, props) { for (var i = 0; i &lt; props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if (&quot;value&quot; in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+<span id='fishTopo-animation-GlobalAnimationMgr'>/**
+</span> * @singleton
+ * @class fishTopo.animation.GlobalAnimationMgr
+ * 
+ * Animation manager, global singleton, controls all the animation processes.
+ * Each FishTopo instance has a GlobalAnimationMgr instance. GlobalAnimationMgr 
+ * is designed to manage all the elements that are animating.
+ * 
+ * 动画管理器，全局单例，控制和调度所有动画过程。每个 FishTopo 实例中会持有一个 
+ * GlobalAnimationMgr 实例。GlobalAnimationMgr 会管理 FishTopo 实例中的所有
+ * 正在进行动画的元素。
+ * 
+ * @docauthor 大漠穷秋 &lt;damoqiongqiu@126.com&gt;
+ */
+// TODO Additive animation
+// http://iosoteric.com/additive-animations-animatewithduration-in-ios-8/
+// https://developer.apple.com/videos/wwdc2014/#236
+var GlobalAnimationMgr =
+/*#__PURE__*/
+function () {
+<span id='fishTopo-animation-GlobalAnimationMgr-method-constructor'>  /**
+</span>   * @method constructor GlobalAnimationMgr
+   * @param {Object} [options]
+   */
+  function GlobalAnimationMgr(options) {
+    _classCallCheck(this, GlobalAnimationMgr);
+
+    options = options || {};
+    this._animatableMap = new Map();
+    this._running = false;
+    this._timestamp;
+    this._pausedTime; //ms
+
+    this._pauseStart;
+    this._paused = false;
+    Dispatcher.call(this);
+  }
+<span id='fishTopo-animation-GlobalAnimationMgr-method-addAnimatable'>  /**
+</span>   * @method addAnimatable
+   * @param {*} animatable 
+   */
+
+
+  _createClass(GlobalAnimationMgr, [{
+    key: &quot;addAnimatable&quot;,
+    value: function addAnimatable(animatable) {
+      this._animatableMap.set(animatable.id, animatable);
+    }
+<span id='fishTopo-animation-GlobalAnimationMgr-method-removeAnimatable'>    /**
+</span>     * @method removeAnimatable
+     * @param {*} animatable 
+     */
+
+  }, {
+    key: &quot;removeAnimatable&quot;,
+    value: function removeAnimatable(animatable) {
+      this._animatableMap[&quot;delete&quot;](animatable.id);
+    }
+<span id='fishTopo-animation-GlobalAnimationMgr-method-_update'>    /**
+</span>     * @private
+     * @method _update
+     */
+
+  }, {
+    key: &quot;_update&quot;,
+    value: function _update() {
+      var _this = this;
+
+      var time = new Date().getTime() - this._pausedTime;
+
+      var delta = time - this._timestamp;
+
+      this._animatableMap.forEach(function (animatable, index, map) {
+        var ap = animatable.animationProcessList[0];
+
+        if (!ap) {
+          _this.removeAnimatable(animatable);
+
+          return;
+        }
+
+        ap.nextFrame(time, delta);
+      });
+
+      this._timestamp = time;
+      this.trigger(&#39;frame&#39;, delta);
+    }
+<span id='fishTopo-animation-GlobalAnimationMgr-method-_startLoop'>    /**
+</span>     * @private
+     * @method _startLoop
+     * Execute recursively with requestAnimationFrame.
+     * The 60fps is a recommended standard of W3C, the nextFrame function
+     * here will be called every 16ms.
+     * If the _update() method here can&#39;t finish a round of animations in 16ms, there will be significant lags. 
+     * 
+     * 这里开始利用 requestAnimationFrame 递归执行，
+     * 按照 W3C 的推荐标准 60fps，这里的 nextFrame 函数大约每隔 16ms 被调用一次，
+     * 如果这里的 _update() 不能在 6ms 的时间内完成一轮动画，就会出现明显的卡顿。
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/window/requestAnimationFrame
+     */
+
+  }, {
+    key: &quot;_startLoop&quot;,
+    value: function _startLoop() {
+      var self = this;
+      this._running = true;
+
+      function nextFrame() {
+        if (self._running) {
+          requestAnimationFrame(nextFrame);
+          !self._paused &amp;&amp; self._update();
+        }
+      }
+
+      requestAnimationFrame(nextFrame);
+    }
+<span id='fishTopo-animation-GlobalAnimationMgr-method-start'>    /**
+</span>     * @method start
+     * Start animating.
+     * 
+     * 
+     * 启动动画。
+     */
+
+  }, {
+    key: &quot;start&quot;,
+    value: function start() {
+      this._timestamp = new Date().getTime();
+      this._pausedTime = 0;
+
+      this._startLoop();
+    }
+<span id='fishTopo-animation-GlobalAnimationMgr-method-pause'>    /**
+</span>     * @method pause
+     * Pause the animations.
+     * 
+     * 
+     * 暂停动画。
+     */
+
+  }, {
+    key: &quot;pause&quot;,
+    value: function pause() {
+      if (!this._paused) {
+        this._pauseStart = new Date().getTime();
+        this._paused = true;
+      }
+    }
+<span id='fishTopo-animation-GlobalAnimationMgr-method-resume'>    /**
+</span>     * @method resume
+     * Resume the animations.
+     * 
+     * 
+     * 恢复动画。
+     */
+
+  }, {
+    key: &quot;resume&quot;,
+    value: function resume() {
+      if (this._paused) {
+        this._pausedTime += new Date().getTime() - this._pauseStart;
+        this._paused = false;
+      }
+    }
+<span id='fishTopo-animation-GlobalAnimationMgr-method-clear'>    /**
+</span>     * @method clear
+     * Clear the animations.
+     * 
+     * 
+     * 清除动画。
+     */
+
+  }, {
+    key: &quot;clear&quot;,
+    value: function clear() {
+      this._animatableMap.forEach(function (animatable, index) {
+        animatable.stopAnimation();
+      });
+
+      this._running = false;
+      this._animatableMap = new Map();
+    }
+  }]);
+
+  return GlobalAnimationMgr;
+}();
+
+classUtil.mixin(GlobalAnimationMgr, Dispatcher);
+var _default = GlobalAnimationMgr;
+module.exports = _default;</pre>
+</body>
+</html>

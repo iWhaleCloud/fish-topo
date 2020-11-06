@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">var AnimationProcess = require(&quot;./AnimationProcess&quot;);
+
+<span id='fishTopo-animation-Animatable'>/**
+</span> * @abstract
+ * @class fishTopo.animation.Animatable
+ * This is an abstract class for animating. Any class needes animation functions can minxin this implementation.
+ * The class mixines Animatable should also mixin Eventful to provide the event functions.
+ * 
+ * 
+ * 动画抽象类。任何需要动画功能的类都可以 mixin 此实现。
+ * 混入 Animatable 的类必须同时混入 Eventful ，因为动画过程中需要使用事件机制。
+ * 
+ * @docauthor 大漠穷秋 &lt;damoqiongqiu@126.com&gt;
+ */
+
+<span id='fishTopo-animation-Animatable-method-constructor'>/**
+</span> * @abstract
+ * @method constructor Animatable
+ */
+var Animatable = function Animatable() {
+<span id='fishTopo-animation-Animatable-property-animationProcessList'>  /**
+</span>   * @readonly
+   * @property {fishTopo.animation.AnimationProcess} animationProcessList
+   * A list to store the animation processes on current element instance.
+   * 
+   * 
+   * 当前元素上的动画过程列表。
+   */
+  this.animationProcessList = [];
+};
+
+Animatable.prototype = {
+  constructor: Animatable,
+
+<span id='fishTopo-animation-Animatable-method-animate'>  /**
+</span>   * @method animate
+   * Creat the AnimationProcess instance.
+   * 
+   * 
+   * 创建 AnimationProcess 实例。
+   * @param {String} path 
+   * The path to fetch value from object, like &#39;a.b.c&#39;.
+   * 
+   * 
+   * 从对象上获取属性的路径，例如 &#39;a.b.c&#39;。
+   * @param {Boolean} [loop=false] 
+   * Whether to loop animation.
+   * 
+   * 
+   * 动画是否循环播放。
+   * @return {fishTopo.animation.AnimationProcess}
+   */
+  animate: function animate() {
+    var animatable = this;
+    var animationProcess = new AnimationProcess(animatable);
+    animationProcess.on(&#39;done&#39;, function () {
+      animatable.removeAnimationProcess(animationProcess);
+    });
+    animationProcess.on(&#39;stop&#39;, function () {
+      animatable.removeAnimationProcess(animationProcess);
+    });
+    animatable.animationProcessList.push(animationProcess);
+
+    if (animatable.__topo) {
+      animatable.__topo.globalAnimationMgr.addAnimatable(animatable);
+    }
+
+    return animationProcess;
+  },
+
+<span id='fishTopo-animation-Animatable-method-stopAnimation'>  /**
+</span>   * @method stopAnimation
+   * Stop the animation.
+   * 
+   * 
+   * 停止动画。
+   * @param {Boolean} forwardToLast 
+   * If move to last frame before stop.
+   * 
+   * 
+   * 在停止动画之前是否强制移动到最后一帧。
+   */
+  stopAnimation: function stopAnimation() {
+    var forwardToLast = arguments.length &gt; 0 &amp;&amp; arguments[0] !== undefined ? arguments[0] : false;
+    this.animationProcessList.forEach(function (ap) {
+      ap.stop(forwardToLast);
+    });
+    this.animationProcessList.length = 0;
+    return this;
+  },
+
+<span id='fishTopo-animation-Animatable-method-removeAnimationProcess'>  /**
+</span>   * @method removeAnimationProcess
+   * Remove the AnimationProcess。
+   * 
+   * 
+   * 删除动画过程。
+   * @param {AnimationProcess} animationProcess
+   */
+  removeAnimationProcess: function removeAnimationProcess(animationProcess) {
+    var index = this.animationProcessList.indexOf(animationProcess);
+
+    if (index &gt;= 0) {
+      this.animationProcessList.splice(index, 1);
+    }
+  }
+};
+var _default = Animatable;
+module.exports = _default;</pre>
+</body>
+</html>

@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">var dataUtil = require(&quot;../utils/data_structure_util&quot;);
+
+var Element = require(&quot;./Element&quot;);
+
+var Rect = require(&quot;./shape/Rect&quot;);
+
+function _typeof(obj) { &quot;@babel/helpers - typeof&quot;; if (typeof Symbol === &quot;function&quot; &amp;&amp; typeof Symbol.iterator === &quot;symbol&quot;) { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj &amp;&amp; typeof Symbol === &quot;function&quot; &amp;&amp; obj.constructor === Symbol &amp;&amp; obj !== Symbol.prototype ? &quot;symbol&quot; : typeof obj; }; } return _typeof(obj); }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError(&quot;Cannot call a class as a function&quot;); } }
+
+function _defineProperties(target, props) { for (var i = 0; i &lt; props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if (&quot;value&quot; in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _possibleConstructorReturn(self, call) { if (call &amp;&amp; (_typeof(call) === &quot;object&quot; || typeof call === &quot;function&quot;)) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError(&quot;this hasn&#39;t been initialised - super() hasn&#39;t been called&quot;); } return self; }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== &quot;function&quot; &amp;&amp; superClass !== null) { throw new TypeError(&quot;Super expression must either be null or a function&quot;); } subClass.prototype = Object.create(superClass &amp;&amp; superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+<span id='fishTopo-graphic-Group'>/**
+</span> * @class fishTopo.graphic.Group
+ * 
+ * - Group can have child nodes, not the other Element types.
+ * - The transformations applied to Group will apply to its children too.
+ * 
+ * - Group 可以插入子节点，其它类型不能。
+ * - Group 上的变换也会被应用到子节点上。
+ */
+var Group =
+/*#__PURE__*/
+function (_Rect) {
+  _inherits(Group, _Rect);
+
+<span id='fishTopo-graphic-Group-method-constructor'>  /**
+</span>   * @method constructor Group
+   */
+  function Group() {
+    var _this;
+
+    var options = arguments.length &gt; 0 &amp;&amp; arguments[0] !== undefined ? arguments[0] : {};
+
+    _classCallCheck(this, Group);
+
+    _this = _possibleConstructorReturn(this, _getPrototypeOf(Group).call(this, dataUtil.merge({
+      style: {
+        fill: &#39;#ccc&#39;
+      }
+    }, options, true)));
+<span id='fishTopo-graphic-Group-property-type'>    /**
+</span>     * @property {String} type
+     */
+
+    _this.type = &#39;group&#39;;
+<span id='fishTopo-graphic-Group-property-resizeStrategy'>    /**
+</span>     * @property {String} resizeStrategy
+     * - free: The group will not resitrict child nodes&#39; positions, all child nodes are free to move.
+     * - resize: The group will auto resize according to the position of child nodes. 
+     * - restrict: The group will restrict the position of child nodes, no child nodes can move outside group area.
+     * 
+     * 
+     * - free: Group 不会限制子节点的位置，所有子节点都可以自由移动。
+     * - resize: Group 会自动调整自己的尺寸来适配子节点的位置。
+     * - restrict: Group 会限制子节点的位置，子节点只能在 group 内部移动，不能超出 group 的范围。
+     */
+
+    _this.resizeStrategy = &#39;resize&#39;; // free, resize, restrict
+
+<span id='fishTopo-graphic-Group-property-children'>    /**
+</span>     * @property children
+     */
+
+    _this.children = [];
+<span id='fishTopo-graphic-Group-property-__storage'>    /**
+</span>     * @private
+     * @property __storage
+     */
+
+    _this.__storage = null;
+    return _this;
+  }
+<span id='fishTopo-graphic-Group-method-buildPath'>  /**
+</span>   * @method buildPath
+   * 绘制元素路径
+   * @param {Object} ctx 
+   * @param {String} shape 
+   */
+
+
+  _createClass(Group, [{
+    key: &quot;buildPath&quot;,
+    value: function buildPath(ctx, shape) {
+      Rect.prototype.buildPath.call(this, ctx, shape);
+    }
+<span id='fishTopo-graphic-Group-method-add'>    /**
+</span>     * @method add
+     * 添加子节点到最后
+     * @param {Element} child
+     */
+
+  }, {
+    key: &quot;add&quot;,
+    value: function add(child) {
+      if (child &amp;&amp; child !== this &amp;&amp; child.parent !== this) {
+        this._doAdd(child);
+      }
+
+      return this;
+    }
+<span id='fishTopo-graphic-Group-method-addBefore'>    /**
+</span>     * @method addBefore
+     * 添加子节点在 nextSibling 之前
+     * @param {Element} child
+     * @param {Element} nextSibling
+     */
+
+  }, {
+    key: &quot;addBefore&quot;,
+    value: function addBefore(child, nextSibling) {
+      if (child &amp;&amp; child !== this &amp;&amp; child.parent !== this &amp;&amp; nextSibling &amp;&amp; nextSibling.parent === this) {
+        var children = this.children;
+        var idx = children.indexOf(nextSibling);
+
+        if (idx &gt;= 0) {
+          children.splice(idx, 0, child);
+
+          this._doAdd(child);
+        }
+      }
+
+      return this;
+    }
+<span id='fishTopo-graphic-Group-method-_doAdd'>    /**
+</span>     * @private
+     * @method _doAdd
+     * @param {*} child 
+     */
+
+  }, {
+    key: &quot;_doAdd&quot;,
+    value: function _doAdd(child) {
+      child.parent &amp;&amp; child.parent.remove(child);
+      child.parent = this;
+      this.children.push(child);
+      this.__topo &amp;&amp; (child.__topo = this.__topo);
+      this.__storage &amp;&amp; this.__storage.addToStorage(child); //listen to moving and resizing evnets.
+
+      child.beforeMove = this.beforeChildMove;
+      child.on(&quot;moving&quot;, this.childEventHandler, this);
+      child.on(&quot;resizing&quot;, this.childEventHandler, this);
+    }
+  }, {
+    key: &quot;childEventHandler&quot;,
+    value: function childEventHandler(child) {
+      if (this.resizeStrategy === &#39;free&#39;) {
+        return;
+      } else if (this.resizeStrategy === &#39;resize&#39;) {
+        this.resizeGroup(child);
+      }
+    } //执行上下文是子元素对象
+
+  }, {
+    key: &quot;beforeChildMove&quot;,
+    value: function beforeChildMove(dx, dy, event) {
+      var group = this.parent;
+
+      if (group.resizeStrategy === &#39;free&#39;) {
+        return true;
+      }
+
+      var groupOriginalRect = group.originalBoundingRect;
+      var groupRect = group.getOuterBoundingRect();
+      var childRect = this.getOuterBoundingRect();
+
+      if (this.position[0] &lt; 0) {
+        this.position[0] = 0;
+        return false;
+      }
+
+      if (this.position[1] &lt; 0) {
+        this.position[1] = 0;
+        return false;
+      }
+
+      if (group.resizeStrategy === &#39;restrict&#39;) {
+        var tempWidth = childRect.x2 - groupRect.x1;
+
+        if (tempWidth &gt; groupOriginalRect.width) {
+          this.position[0] = groupOriginalRect.width - childRect.width;
+          return false;
+        }
+
+        var tempHeight = childRect.y2 - groupRect.y1;
+
+        if (tempHeight &gt; groupOriginalRect.height) {
+          this.position[1] = groupOriginalRect.height - childRect.height;
+          return false;
+        }
+      }
+
+      return true;
+    }
+  }, {
+    key: &quot;resizeGroup&quot;,
+    value: function resizeGroup(child) {
+      var groupOriginalRect = this.originalBoundingRect;
+      var groupRect = this.getOuterBoundingRect();
+      var childRect = child.getOuterBoundingRect();
+      var newWidth = groupOriginalRect.width;
+      var newHeight = groupOriginalRect.height;
+
+      if (child.position[0] &gt;= 0) {
+        var temp = childRect.x2 - groupRect.x1;
+
+        if (temp &gt; groupOriginalRect.width) {
+          newWidth = temp;
+        }
+      }
+
+      if (child.position[1] &gt;= 0) {
+        var _temp = childRect.y2 - groupRect.y1;
+
+        if (_temp &gt; groupOriginalRect.height) {
+          newHeight = _temp;
+        }
+      }
+
+      this.shape.width = newWidth;
+      this.shape.height = newHeight;
+      this.dirty();
+      this.trigger(&quot;resizing&quot;, this);
+    }
+<span id='fishTopo-graphic-Group-method-remove'>    /**
+</span>     * @method remove
+     * 移除子节点
+     * @param {Element} child
+     */
+
+  }, {
+    key: &quot;remove&quot;,
+    value: function remove(child) {
+      child.beforeMove = null;
+      child.off(&quot;moving&quot;, this.childEventHandler, this);
+      child.off(&quot;resizing&quot;, this.childEventHandler, this);
+      var idx = dataUtil.indexOf(this.children, child);
+
+      if (idx &gt;= 0) {
+        this.children.splice(idx, 1);
+        this.__storage &amp;&amp; this.__storage.delFromStorage(child);
+      }
+
+      return this;
+    }
+<span id='fishTopo-graphic-Group-method-removeAll'>    /**
+</span>     * @method removeAll
+     * 移除所有子节点
+     */
+
+  }, {
+    key: &quot;removeAll&quot;,
+    value: function removeAll() {
+      var storage = this.__storage;
+      this.children.forEach(function (child, index) {
+        storage &amp;&amp; storage.delFromStorage(child);
+        child.parent = null;
+      });
+      this.children.length = 0;
+      return this;
+    }
+<span id='fishTopo-graphic-Group-method-eachChild'>    /**
+</span>     * @method eachChild
+     * 遍历所有子节点
+     * @param  {Function} cb
+     * @param  {Object}   context
+     */
+
+  }, {
+    key: &quot;eachChild&quot;,
+    value: function eachChild(cb, context) {
+      this.children.forEach(function (child, index) {
+        cb.call(context, child);
+      });
+      return this;
+    }
+<span id='fishTopo-graphic-Group-method-traverse'>    /**
+</span>     * @method traverse
+     * 深度优先遍历所有子孙节点
+     * @param  {Function} cb
+     * @param  {Object}   context
+     */
+
+  }, {
+    key: &quot;traverse&quot;,
+    value: function traverse(cb, context) {
+      this.children.forEach(function (child, index) {
+        cb.call(context, child);
+
+        if (child.type === &#39;group&#39;) {
+          child.traverse(cb, context);
+        }
+      });
+      return this;
+    }
+<span id='fishTopo-graphic-Group-method-addToStorage'>    /**
+</span>     * @method addToStorage
+     * Override addToStorage method of super class.
+     * @param {fishTopo.core.Storage} storage 
+     */
+
+  }, {
+    key: &quot;addToStorageHandler&quot;,
+    value: function addToStorageHandler(storage) {
+      var _this2 = this;
+
+      //首先把子元素添加到 storage
+      this.children.forEach(function (child, index) {
+        child.parent = _this2;
+        child.__topo = _this2.__topo;
+        storage.addToStorage(child);
+      }); //然后在调用父层的处理函数添加自身
+
+      Element.prototype.addToStorageHandler.call(this, storage);
+    }
+<span id='fishTopo-graphic-Group-method-delFromStorageHandler'>    /**
+</span>     * @method delFromStorageHandler
+     * Override delFromStorageHandler method of super class.
+     * @param {fishTopo.core.Storage} storage 
+     */
+
+  }, {
+    key: &quot;delFromStorageHandler&quot;,
+    value: function delFromStorageHandler(storage) {
+      //首先把子元素从 storage 中删除
+      this.children.forEach(function (child, index) {
+        child.parent = null;
+        storage.delFromStorage(child);
+      }); //然后在调用父层的处理函数删除自身
+
+      Element.prototype.delFromStorageHandler.call(this, storage);
+    }
+  }, {
+    key: &quot;toJSONObject&quot;,
+    value: function toJSONObject() {
+      var result = Element.prototype.toJSONObject.call(this);
+      result.linkable = this.linkable;
+      result.children = [];
+      this.children.forEach(function (child, index) {
+        result.children.push(child.toJSONObject());
+      });
+      return result;
+    } // /**FIXME:refactor this method
+    //  * @method getBoundingRect
+    //  * @return {BoundingRect}
+    //  */
+    // getBoundingRect(includeChildren) {
+    //     // TODO Caching
+    //     let rect = null;
+    //     let tmpRect = new BoundingRect(0, 0, 0, 0);
+    //     let children = includeChildren || this.children;
+    //     for (let i = 0; i &lt; children.length; i++) {
+    //         let child = children[i];
+    //         if (child.ignore || child.invisible) {
+    //             continue;
+    //         }
+    //         let childRect = child.getBoundingRect();
+    //         let transform = child.getLocalTransform();
+    //         // TODO:
+    //         // The boundingRect cacluated by transforming original
+    //         // rect may be bigger than the actual bundingRect when rotation
+    //         // is used. (Consider a circle rotated aginst its center, where
+    //         // the actual boundingRect should be the same as that not be
+    //         // rotated.) But we can not find better approach to calculate
+    //         // actual boundingRect yet, considering performance.
+    //         if (transform) {
+    //             tmpRect.copy(childRect);
+    //             tmpRect.applyTransform(transform);
+    //             rect = rect || tmpRect.clone();
+    //             rect.union(tmpRect);
+    //         }else {
+    //             rect = rect || childRect.clone();
+    //             rect.union(childRect);
+    //         }
+    //     }
+    //     return rect || tmpRect;
+    // }
+
+  }]);
+
+  return Group;
+}(Rect);
+
+var _default = Group;
+module.exports = _default;</pre>
+</body>
+</html>

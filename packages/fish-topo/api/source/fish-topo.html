@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">var textUtil = require(&quot;./utils/text_util&quot;);
+
+var dataUtil = require(&quot;./utils/data_structure_util&quot;);
+
+var GlobalEventDispatcher = require(&quot;./event/GlobalEventDispatcher&quot;);
+
+var CanvasPainter = require(&quot;./canvas/CanvasPainter&quot;);
+
+var GlobalAnimationMgr = require(&quot;./animation/GlobalAnimationMgr&quot;);
+
+var DomEventInterceptor = require(&quot;./event/DomEventInterceptor&quot;);
+
+var Storage = require(&quot;./Storage&quot;);
+
+var guid = require(&quot;./utils/guid&quot;);
+
+var env = require(&quot;./utils/env&quot;);
+
+var Circle = require(&quot;./graphic/shape/Circle&quot;);
+
+var Rect = require(&quot;./graphic/shape/Rect&quot;);
+
+var Arc = require(&quot;./graphic/shape/Arc&quot;);
+
+var Droplet = require(&quot;./graphic/shape/Droplet&quot;);
+
+var Ellipse = require(&quot;./graphic/shape/Ellipse&quot;);
+
+var Heart = require(&quot;./graphic/shape/Heart&quot;);
+
+var Isogon = require(&quot;./graphic/shape/Isogon&quot;);
+
+var Polygon = require(&quot;./graphic/shape/Polygon&quot;);
+
+var Ring = require(&quot;./graphic/shape/Ring&quot;);
+
+var Rose = require(&quot;./graphic/shape/Rose&quot;);
+
+var Sector = require(&quot;./graphic/shape/Sector&quot;);
+
+var Star = require(&quot;./graphic/shape/Star&quot;);
+
+var Group = require(&quot;./graphic/Group&quot;);
+
+var Image = require(&quot;./graphic/Image&quot;);
+
+var Path = require(&quot;./graphic/Path&quot;);
+
+var Line = require(&quot;./graphic/line/Line&quot;);
+
+var Polyline = require(&quot;./graphic/line/Polyline&quot;);
+
+var Trochoid = require(&quot;./graphic/line/Trochoid&quot;);
+
+var VisioLink = require(&quot;./graphic/link/VisioLink&quot;);
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError(&quot;Cannot call a class as a function&quot;); } }
+
+function _defineProperties(target, props) { for (var i = 0; i &lt; props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if (&quot;value&quot; in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+<span id='fishTopo-core-FishTopo'>/**
+</span> * @class fishTopo.core.FishTopo
+ * FishTopo, a high performance 2d drawing library.
+ * Class FishTopo is the global entry, every time you call fishTopo.init() will 
+ * create an instance of FishTopo class, each instance has an unique id.
+ * 
+ * 
+ * FishTopo 是一款高性能的 2d 渲染引擎。
+ * FishTopo 类是全局入口，每次调用 fishTopo.init() 会创建一个实例，每个 FishTopo 实例有自己唯一的 ID。
+ * 
+ * @docauthor 大漠穷秋 damoqiongqiu@126.com
+ */
+var classMapping = {
+  &#39;circle&#39;: {
+    clazz: Circle,
+    isLink: false
+  },
+  &#39;rect&#39;: {
+    clazz: Rect,
+    isLink: false
+  },
+  &#39;arc&#39;: {
+    clazz: Arc,
+    isLink: false
+  },
+  &#39;droplet&#39;: {
+    clazz: Droplet,
+    isLink: false
+  },
+  &#39;ellipse&#39;: {
+    clazz: Ellipse,
+    isLink: false
+  },
+  &#39;heart&#39;: {
+    clazz: Heart,
+    isLink: false
+  },
+  &#39;isogon&#39;: {
+    clazz: Isogon,
+    isLink: false
+  },
+  &#39;polygon&#39;: {
+    clazz: Polygon,
+    isLink: false
+  },
+  &#39;ring&#39;: {
+    clazz: Ring,
+    isLink: false
+  },
+  &#39;rose&#39;: {
+    clazz: Rose,
+    isLink: false
+  },
+  &#39;sector&#39;: {
+    clazz: Sector,
+    isLink: false
+  },
+  &#39;star&#39;: {
+    clazz: Star,
+    isLink: false
+  },
+  &#39;text&#39;: {
+    clazz: Text,
+    isLink: false
+  },
+  &#39;image&#39;: {
+    clazz: Image,
+    isLink: false
+  },
+  &#39;group&#39;: {
+    clazz: Group,
+    isLink: false
+  },
+  &#39;path&#39;: {
+    clazz: Path,
+    isLink: false
+  },
+  &#39;line&#39;: {
+    clazz: Line,
+    isLink: true
+  },
+  &#39;polyline&#39;: {
+    clazz: Polyline,
+    isLink: true
+  },
+  &#39;rrochoid&#39;: {
+    clazz: Trochoid,
+    isLink: true
+  },
+  &#39;visio&#39;: {
+    clazz: VisioLink,
+    isLink: true
+  }
+};
+
+if (!env.canvasSupported) {
+  throw new Error(&quot;Need Canvas Environment.&quot;);
+} // 每种底层渲染技术的 Painter 都需要注册到这里，默认 CanvasPainter
+// Each type of Painters for different rendering techniques should be registered here, default to CanvasPainter.
+
+
+var painterMap = {
+  canvas: CanvasPainter
+};
+<span id='fishTopo-core-FishTopo-static-method-registerPainter'>/**
+</span> * @static
+ * @method registerPainter
+ * Register the painter.
+ * 
+ * 
+ * 注册 Painter。
+ * @param {*} name 
+ * @param {*} PainterClass 
+ */
+
+function registerPainter(name, PainterClass) {
+  painterMap[name] = PainterClass;
+} // FishTopo 实例map索引，浏览器中同一个 window 下的 FishTopo 实例都会存在这里。
+// A map for caching FishTopo instances, every instance of the same scope will be stored here.
+
+
+var instances = {};
+var links = [];
+var linkParamCache = [];
+<span id='fishTopo-core-FishTopo-property-version'>/**
+</span> * @property {String} version
+ */
+
+var version = &#39;1.0.36&#39;;
+<span id='fishTopo-core-FishTopo-method-fishTopo'>/**
+</span> * @method fishTopo.init()
+ * Global entry for creating a fishTopo instance.
+ * 
+ * 全局总入口，创建 FishTopo 的实例。
+ * 
+ * @param {HTMLDomElement|Canvas|Context} host 
+ * This can be a HTMLDomElement like a DIV, or a Canvas instance, 
+ * or Context for Wechat mini-program.
+ * 
+ * 此属性可以是 HTMLDomElement ，比如 DIV 标签；也可以是 Canvas 实例；或者是 Context 实例，因为在某些
+ * 运行环境中，不能获得 Canvas 实例的引用，只能获得 Context。
+ * @param {Object} [options]
+ * @param {String} [options.renderer=&#39;canvas&#39;] &#39;canvas&#39; or &#39;svg&#39;
+ * @param {Number} [options.devicePixelRatio]
+ * @param {Number|String} [options.width] Can be &#39;auto&#39; (the same as null/undefined)
+ * @param {Number|String} [options.height] Can be &#39;auto&#39; (the same as null/undefined)
+ * @return {FishTopo}
+ */
+
+function init(host, options) {
+  var topo = new FishTopo(host, options);
+  instances[topo.id] = topo;
+  return topo;
+}
+<span id='fishTopo-core-FishTopo-method-dispose'>/**
+</span> * FIXME: 不要export这个全局函数看起来也没有问题。
+ * Dispose fishTopo instance
+ * @param {FishTopo} topo
+ */
+
+
+function dispose(topo) {
+  if (topo) {
+    topo.dispose();
+  } else {
+    for (var key in instances) {
+      if (instances.hasOwnProperty(key)) {
+        instances[key].dispose();
+      }
+    }
+
+    instances = {};
+  }
+
+  return this;
+}
+<span id='fishTopo-core-FishTopo-static-method-getInstance'>/**
+</span> * @static
+ * @method getInstance
+ * Get fishTopo instance by id.
+ * 
+ * 根据 id 获取 FishTopo 的实例。
+ * @param {String} id
+ * @return {FishTopo}
+ */
+
+
+function getInstance(id) {
+  return instances[id];
+}
+<span id='fishTopo-core-FishTopo-method-constructor'>/**
+</span> * @method constructor FishTopo
+ * @param {String} id
+ * @param {HTMLElement} host
+ * @param {Object} [options]
+ * @param {String} [options.renderer=&#39;canvas&#39;] &#39;canvas&#39; or &#39;svg&#39;
+ * @param {Number} [options.devicePixelRatio]
+ * @param {Number} [options.width] Can be &#39;auto&#39; (the same as null/undefined)
+ * @param {Number} [options.height] Can be &#39;auto&#39; (the same as null/undefined)
+ * @return {FishTopo}
+ */
+
+
+var FishTopo =
+/*#__PURE__*/
+function () {
+  function FishTopo(host) {
+    var options = arguments.length &gt; 1 &amp;&amp; arguments[1] !== undefined ? arguments[1] : {};
+
+    _classCallCheck(this, FishTopo);
+
+<span id='fishTopo-core-FishTopo-property-id'>    /**
+</span>     * @private
+     * @property {String} id
+     */
+    this.id = guid();
+<span id='fishTopo-core-FishTopo-property-host'>    /**
+</span>     * @property {HTMLDomElement|Canvas|Context} host 
+     * This can be a HTMLDomElement like a DIV, or a Canvas instance, 
+     * or Context for Wechat mini-program.
+     * 
+     * 此属性可以是 HTMLDomElement ，比如 DIV 标签；也可以是 Canvas 实例；或者是 Context 实例，因为在某些
+     * 运行环境中，不能获得 Canvas 实例的引用，只能获得 Context。
+     */
+
+    this.host = host;
+    var self = this;
+<span id='fishTopo-core-FishTopo-property-storage'>    /**
+</span>     * @private
+     * @property {fishTopo.core.Storage} storage
+     */
+
+    this.storage = new Storage(); //根据参数创建不同类型的 Painter 实例。
+
+    var rendererType = options.renderer;
+
+    if (!rendererType || !painterMap[rendererType]) {
+      rendererType = &#39;canvas&#39;;
+    }
+
+    this.painter = new painterMap[rendererType](this.host, this.storage, options, this.id); //利用代理拦截 DOM 事件，转发到 FishTopo 自己封装的事件机制。
+
+    var eventInterceptor = null;
+
+    if (typeof this.host.moveTo !== &#39;function&#39;) {
+      if (!env.node &amp;&amp; !env.worker &amp;&amp; !env.wxa) {
+        eventInterceptor = new DomEventInterceptor(this.painter.getHost());
+      }
+    } else {
+      // host is Context instance, override function.
+      textUtil.$override(&#39;measureText&#39;, function (text, font) {
+        self.font = font || textUtil.DEFAULT_FONT;
+        return self.host.measureText(text);
+      });
+    }
+<span id='fishTopo-core-FishTopo-property-eventDispatcher'>    /**
+</span>     * @private
+     * @property {GlobalEventDispatcher} eventDispatcher
+     * FishTopo 自己封装的事件机制，这是画布内部的事件系统。
+     */
+
+
+    this.eventDispatcher = new GlobalEventDispatcher(this.storage, this.painter, eventInterceptor, this.painter.root);
+    this.eventDispatcher.on(&quot;rendered&quot;, this.afterRenderHandler, this);
+<span id='fishTopo-core-FishTopo-property-globalAnimationMgr'>    /**
+</span>     * @property {GlobalAnimationMgr}
+     * 利用 GlobalAnimationMgr 的 frame 事件刷新画布上的元素。
+     */
+
+    this.globalAnimationMgr = new GlobalAnimationMgr();
+    this.globalAnimationMgr.on(&quot;frame&quot;, function () {
+      self.flush();
+    });
+    this.globalAnimationMgr.start();
+<span id='fishTopo-core-FishTopo-property-__dirty'>    /**
+</span>     * @property {Boolean}
+     * @private
+     */
+
+    this.__dirty = false;
+  }
+<span id='fishTopo-core-FishTopo-method-'>  /**
+</span>   * @method
+   * Add element.
+   * 
+   * 
+   * 添加元素。
+   * @param  {fishTopo/Element} el
+   */
+
+
+  _createClass(FishTopo, [{
+    key: &quot;add&quot;,
+    value: function add(el) {
+      el.__topo = this;
+      this.storage.addToRoot(el);
+      this.dirty();
+    }
+<span id='fishTopo-core-FishTopo-method-'>    /**
+</span>     * @method
+     * Delete element.
+     * 
+     * 
+     * 删除元素。
+     * @param  {fishTopo/Element} el
+     */
+
+  }, {
+    key: &quot;remove&quot;,
+    value: function remove(el) {
+      this.storage.delFromRoot(el);
+      el.__topo = null;
+      this.dirty();
+    }
+<span id='fishTopo-core-FishTopo-method-'>    /**
+</span>     * @private
+     * @method
+     * Perform refresh operation, this method will be called by window.requestAnimationFrame contantly, 
+     * if there is no elment need to be repaint, this method just do nothing. Please do NOT call this 
+     * method directly.
+     * 
+     * 
+     * 刷新 canvas 画面，此方法会在 window.requestAnimationFrame 方法中被不断调用，如果没有元素需要被重绘，
+     * 这个方法什么都不做。请不要直接调用此方法。
+     */
+
+  }, {
+    key: &quot;flush&quot;,
+    value: function flush() {
+      if (this.__dirty) {
+        //try refreshing all elements
+        // Clear needsRefresh ahead to avoid something wrong happens in refresh
+        // Or it will cause fishTopo refreshes again and again.
+        this.__dirty = this.__hoverLayerDirty = false;
+        this.painter.refresh &amp;&amp; this.painter.refresh();
+      }
+
+      if (this.__hoverLayerDirty) {
+        //only try refreshing hovered elements
+        this.__dirty = this.__hoverLayerDirty = false;
+        this.painter.refreshHover &amp;&amp; this.painter.refreshHover();
+      } // Avoid trigger topo.refresh in Element#beforeUpdate hook
+
+
+      this.__dirty = this.__hoverLayerDirty = false;
+      this.eventDispatcher.trigger(&#39;rendered&#39;);
+    }
+<span id='fishTopo-core-FishTopo-method-dirty'>    /**
+</span>     * @method dirty
+     * Mark the entire canvas as dirty, will be repaint in the next animation frame.
+     * 
+     * 
+     * 把整个画布标记为 dirty，在下一帧中会全部重绘。
+     */
+
+  }, {
+    key: &quot;dirty&quot;,
+    value: function dirty() {
+      this.__dirty = true;
+    }
+<span id='fishTopo-core-FishTopo-method-addHover'>    /**
+</span>     * @private
+     * @method addHover
+     * Add element to a hover layer, the 6 methods below are related to hover layer, we may need a hover layer 
+     * to display some special data when the mouse is hovered over an element.
+     * 
+     * 
+     * 把元素添加到浮动层。
+     * 以下与 Hover 相关的6个方法用来处理浮动层，当鼠标悬停在 canvas 中的元素上方时，可能会需要
+     * 显示一些浮动的层来展现一些特殊的数据。
+     * 
+     * @param  {Element} el
+     * @param {Object} style
+     */
+
+  }, {
+    key: &quot;addHover&quot;,
+    value: function addHover(el, style) {
+      if (this.painter.addHover) {
+        var elMirror = this.painter.addHover(el, style);
+        this.refreshHover();
+        return elMirror;
+      }
+    }
+<span id='fishTopo-core-FishTopo-method-removeHover'>    /**
+</span>     * @private
+     * @method removeHover
+     * Remove element from hover layer.
+     * 
+     * 
+     * 从浮动层中删除元素。
+     * @param  {Element} el
+     */
+
+  }, {
+    key: &quot;removeHover&quot;,
+    value: function removeHover(el) {
+      if (this.painter.removeHover) {
+        this.painter.removeHover(el);
+        this.refreshHover();
+      }
+    }
+<span id='fishTopo-core-FishTopo-method-findHover'>    /**
+</span>     * @private
+     * @method findHover
+     * Find hovered element.
+     * 
+     * 
+     * 查找浮动的元素。
+     * @param {Number} x
+     * @param {Number} y
+     * @return {Object} {target, topTarget}
+     */
+
+  }, {
+    key: &quot;findHover&quot;,
+    value: function findHover(x, y) {
+      return this.eventDispatcher.findHover(x, y);
+    }
+<span id='fishTopo-core-FishTopo-method-clearHover'>    /**
+</span>     * @private
+     * @method clearHover
+     * Clear all hover elements in hover layer.
+     * 
+     * 
+     * 从浮动层中删掉所有元素。
+     * @param  {Element} el
+     */
+
+  }, {
+    key: &quot;clearHover&quot;,
+    value: function clearHover() {
+      if (this.painter.clearHover) {
+        this.painter.clearHover();
+        this.refreshHover();
+      }
+    }
+<span id='fishTopo-core-FishTopo-method-refreshHover'>    /**
+</span>     * @private
+     * @method refreshHover
+     * Refresh hover in next frame.
+     * 
+     * 
+     * 下一帧刷新浮动层。
+     */
+
+  }, {
+    key: &quot;refreshHover&quot;,
+    value: function refreshHover() {
+      this.__hoverLayerDirty = true;
+    }
+<span id='fishTopo-core-FishTopo-method-resize'>    /**
+</span>     * @method resize
+     * Resize the canvas.
+     * Should be invoked when container size is changed.
+     * 
+     * 
+     * 重设画布的尺寸，当外部容器的尺寸发生了变化时需要调用此方法来重新设置画布的大小。
+     * @param {Object} [options]
+     * @param {Number|String} [options.width] Can be &#39;auto&#39; (the same as null/undefined)
+     * @param {Number|String} [options.height] Can be &#39;auto&#39; (the same as null/undefined)
+     */
+
+  }, {
+    key: &quot;resize&quot;,
+    value: function resize(options) {
+      options = options || {};
+      this.painter.resize(options.width, options.height);
+      this.eventDispatcher.resize();
+    }
+<span id='fishTopo-core-FishTopo-method-getWidth'>    /**
+</span>     * @method getWidth
+     * Get container width.
+     * 
+     * 获取容器的宽度。
+     */
+
+  }, {
+    key: &quot;getWidth&quot;,
+    value: function getWidth() {
+      return this.painter.getWidth();
+    }
+<span id='fishTopo-core-FishTopo-method-getHeight'>    /**
+</span>     * @method getHeight
+     * Get container height.
+     * 
+     * 
+     * 获取容器的高度。
+     */
+
+  }, {
+    key: &quot;getHeight&quot;,
+    value: function getHeight() {
+      return this.painter.getHeight();
+    }
+  }, {
+    key: &quot;registerType&quot;,
+    value: function registerType(name, clazz) {
+      var isLink = arguments.length &gt; 2 &amp;&amp; arguments[2] !== undefined ? arguments[2] : false;
+      classMapping[name] = {
+        clazz: clazz,
+        isLink: isLink
+      };
+    }
+  }, {
+    key: &quot;getElement&quot;,
+    value: function getElement(id) {
+      return this.storage.getElement(id);
+    }
+<span id='fishTopo-core-FishTopo-method-toJSONObject'>    /**
+</span>     * @method toJSONObject
+     * Convert all the elements to JSON Array.
+     * Each subclasses of Element has a toJSONObject() method.
+     * 
+     * 
+     * 把所有元素输出成 JSON 数组。
+     * Element 的所有子类都有 toJSONObject() 方法。
+     * 
+     * @returns {Object} result
+     */
+
+  }, {
+    key: &quot;toJSONObject&quot;,
+    value: function toJSONObject() {
+      var result = [];
+
+      this.storage._roots.forEach(function (value) {
+        result.push(value.toJSONObject());
+      });
+
+      return result;
+    }
+<span id='fishTopo-core-FishTopo-method-fromJSONObject'>    /**
+</span>     * @method fromJSONObject
+     * Parse and creat elements from JSON object. The JSON object can be an Array or an Object.
+     * 
+     * 
+     * 从 JSON 对象解析并创建图形元素。JSON 对象可以是一个数组，也可以是一个对象。
+     * 
+     * @param {Object} jsonObj
+     */
+
+  }, {
+    key: &quot;fromJSONObject&quot;,
+    value: function fromJSONObject(jsonObj) {
+      var _this = this;
+
+      // Recover all the elements first, then the links.
+      if (dataUtil.isArray(jsonObj)) {
+        jsonObj.forEach(function (item) {
+          _this.creatInstance(item, _this);
+        });
+      } else {
+        this.creatInstance(jsonObj, this);
+      }
+
+      links.forEach(function (config) {
+        _this.createLink(config);
+      });
+      links = [];
+      return this;
+    }
+<span id='fishTopo-core-FishTopo-method-creatInstance'>    /**
+</span>     * @private
+     * @method creatInstance
+     * @param {*} config 
+     * @param {*} parent 
+     */
+
+  }, {
+    key: &quot;creatInstance&quot;,
+    value: function creatInstance(config, parent) {
+      var _this2 = this;
+
+      var type = config.type;
+      var typeInfo = classMapping[type];
+
+      if (typeInfo.isLink) {
+        links.push(config);
+        return;
+      }
+
+      var instance = new typeInfo.clazz(config);
+      parent.add(instance);
+
+      if (config.children) {
+        config.children.forEach(function (item) {
+          _this2.creatInstance(item, instance); // create child node recursively for groups
+
+        });
+      }
+    }
+<span id='fishTopo-core-FishTopo-method-createLink'>    /**
+</span>     * @method createLink
+     * Link two linkables programmaticly.
+     * 
+     * 
+     * 用编程的方式把两个 linkable 元素连接起来。
+     * 
+     */
+
+  }, {
+    key: &quot;createLink&quot;,
+    value: function createLink(config) {
+      var linkable1 = null;
+      var linkable2 = null;
+
+      if (config &amp;&amp; dataUtil.isString(config.fromId)) {
+        linkable1 = this.getElement(config.fromId);
+      } else {
+        linkable1 = config.fromEl;
+        config.fromId = linkable1.id;
+      }
+
+      if (config &amp;&amp; dataUtil.isString(config.toId)) {
+        linkable2 = this.getElement(config.toId);
+      } else {
+        linkable2 = config.toEl;
+        config.toId = linkable2.id;
+      }
+
+      if (!linkable1 || !linkable2) {
+        return;
+      }
+
+      delete config.fromEl;
+      delete config.toEl;
+      var typeInfo = classMapping[config.type];
+      var cable = new typeInfo.clazz(config);
+      linkParamCache.push({
+        linkable1: linkable1,
+        linkable2: linkable2,
+        cable: cable,
+        config: config
+      });
+
+      if (linkable1.__topo &amp;&amp; linkable2.__topo) {
+        // Both this.linkable1 and linkable2 are rendered.
+        this.add(cable);
+      }
+
+      return cable;
+    }
+  }, {
+    key: &quot;afterRenderHandler&quot;,
+    value: function afterRenderHandler() {
+      linkParamCache.forEach(function (item) {
+        if (!item.linkable1.linkSlots || !item.linkable1.linkSlots.size || !item.linkable2.linkSlots || !item.linkable2.linkSlots.size) {
+          return;
+        }
+
+        var slot1 = item.linkable1.linkSlots.get(item.config.fromPosition);
+        var slot2 = item.linkable2.linkSlots.get(item.config.toPosition);
+        var control1 = item.cable.startControl;
+        var control2 = item.cable.endControl;
+        control1.setSlot(slot1);
+        control2.setSlot(slot2);
+      });
+      linkParamCache = [];
+    }
+<span id='fishTopo-core-FishTopo-method-configLayer'>    /**
+</span>     * @private
+     * @method configLayer
+     * Change configuration of layer.
+     * 
+     * 
+     * 修改层属性。
+     * @param {String} qLevel
+     * @param {Object} [config]
+     * @param {String} [config.clearColor=0] Clear color
+     * @param {String} [config.motionBlur=false] If enable motion blur
+     * @param {Number} [config.lastFrameAlpha=0.7] Motion blur factor. Larger value cause longer trailer
+    */
+
+  }, {
+    key: &quot;configLayer&quot;,
+    value: function configLayer(qLevel, config) {
+      if (this.painter.configLayer) {
+        this.painter.configLayer(qLevel, config);
+      }
+
+      this.dirty();
+    }
+<span id='fishTopo-core-FishTopo-method-setBackgroundColor'>    /**
+</span>     * @method setBackgroundColor
+     * Set background color.
+     * 
+     * 
+     * 设置背景颜色。
+     * @param {String} backgroundColor
+     */
+
+  }, {
+    key: &quot;setBackgroundColor&quot;,
+    value: function setBackgroundColor(backgroundColor) {
+      if (this.painter.setBackgroundColor) {
+        this.painter.setBackgroundColor(backgroundColor);
+      }
+
+      this.dirty();
+    }
+<span id='fishTopo-core-FishTopo-method-pathToImage'>    /**
+</span>     * @method pathToImage
+     * Converting a path to image.
+     * It has much better performance of drawing image rather than drawing a vector path.
+     * 
+     * 
+     * 把路径导出成图片。
+     * 绘制图片的性能比绘制路径高很多。
+     * @param {Path} path
+     * @param {Number} dpr
+     */
+
+  }, {
+    key: &quot;pathToImage&quot;,
+    value: function pathToImage(path, dpr) {
+      return this.painter.pathToImage(path, dpr);
+    }
+<span id='fishTopo-core-FishTopo-method-setCursorStyle'>    /**
+</span>     * @method setCursorStyle
+     * Set default cursor.
+     * 
+     * 
+     * 设置默认的鼠标形状。
+     * @param {String} [cursorStyle=&#39;move&#39;]
+     */
+
+  }, {
+    key: &quot;setCursorStyle&quot;,
+    value: function setCursorStyle(cursorStyle) {
+      this.eventDispatcher.setCursorStyle(cursorStyle);
+    }
+<span id='fishTopo-core-FishTopo-method-clear'>    /**
+</span>     * @method clear
+     * Clear all objects and the canvas.
+     * 
+     * 
+     * 清空画布上的所有对象。
+     */
+
+  }, {
+    key: &quot;clear&quot;,
+    value: function clear() {
+      this.storage.delFromRoot();
+      this.painter.clear();
+    }
+<span id='fishTopo-core-FishTopo-method-dispose'>    /**
+</span>     * @method dispose
+     * Dispose self.
+     * 
+     * 
+     * 销毁自身。
+     */
+
+  }, {
+    key: &quot;dispose&quot;,
+    value: function dispose() {
+      this.globalAnimationMgr.clear();
+      this.storage.dispose();
+      this.painter.dispose();
+      this.eventDispatcher.dispose();
+      this.globalAnimationMgr = null;
+      this.storage = null;
+      this.painter = null;
+      this.eventDispatcher = null;
+      delete instances[this.id];
+    }
+  }]);
+
+  return FishTopo;
+}(); // ---------------------------
+// Events on FishTopo instance.
+// ---------------------------
+
+<span id='fishTopo-core-FishTopo-event-onclick'>/**
+</span> * @event onclick
+ */
+
+<span id='fishTopo-core-FishTopo-event-onmouseover'>/**
+</span> * @event onmouseover
+ */
+
+<span id='fishTopo-core-FishTopo-event-onmouseout'>/**
+</span> * @event onmouseout
+ */
+
+<span id='fishTopo-core-FishTopo-event-onmousemove'>/**
+</span> * @event onmousemove
+ */
+
+<span id='fishTopo-core-FishTopo-event-onmousewheel'>/**
+</span> * @event onmousewheel
+ */
+
+<span id='fishTopo-core-FishTopo-event-onmousedown'>/**
+</span> * @event onmousedown
+ */
+
+<span id='fishTopo-core-FishTopo-event-onmouseup'>/**
+</span> * @event onmouseup
+ */
+
+<span id='fishTopo-core-FishTopo-event-ondrag'>/**
+</span> * @event ondrag
+ */
+
+<span id='fishTopo-core-FishTopo-event-ondragstart'>/**
+</span> * @event ondragstart
+ */
+
+<span id='fishTopo-core-FishTopo-event-ondragend'>/**
+</span> * @event ondragend
+ */
+
+<span id='fishTopo-core-FishTopo-event-ondragenter'>/**
+</span> * @event ondragenter
+ */
+
+<span id='fishTopo-core-FishTopo-event-ondragleave'>/**
+</span> * @event ondragleave
+ */
+
+<span id='fishTopo-core-FishTopo-event-ondragover'>/**
+</span> * @event ondragover
+ */
+
+<span id='fishTopo-core-FishTopo-event-ondrop'>/**
+</span> * @event ondrop
+ */
+
+<span id='fishTopo-core-FishTopo-event-onpagemousemove'>/**
+</span> * @event onpagemousemove
+ */
+
+<span id='fishTopo-core-FishTopo-event-onpagemouseup'>/**
+</span> * @event onpagemouseup
+ */
+
+
+exports.registerPainter = registerPainter;
+exports.version = version;
+exports.init = init;
+exports.dispose = dispose;
+exports.getInstance = getInstance;</pre>
+</body>
+</html>

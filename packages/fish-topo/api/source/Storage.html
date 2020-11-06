@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">var classUtil = require(&quot;./utils/class_util&quot;);
+
+var Eventful = require(&quot;./event/Eventful&quot;);
+
+var env = require(&quot;./utils/env&quot;);
+
+var timsort = require(&quot;./utils/timsort&quot;);
+
+/* eslint-disable no-unused-vars */
+
+<span id='fishTopo-core-Storage'>/**
+</span> * @class fishTopo.core.Storage
+ * Global storage, has 3 core features:
+ * - Store and manage all the objects in FishTopo instance.
+ * - Manage the displaylist.
+ * - Cooperate with Painter to render the elements. Painter will get the display list from Storage, in this case Storage is used as a transfer 
+ * station, we can skip the drawing process for those elements that do NOT need to be rendered, this will help us improve the performance.
+ * 
+ * 
+ * 全局仓库，有3个主要核心功能：
+ * - 存储和管理 FishTopo 中的所有对象。
+ * - 管理显示列表。
+ * - 与 Painter 配合，渲染元素。Painter 会从 Storage 中获取显示列表进行绘图，利用 Storage 作为中转站，对于不需要刷新的对象可以不绘制，从而可以提升整体性能。
+ * @docauthor 大漠穷秋 damoqiongqiu@126.com
+ */
+
+<span id='fishTopo-core-Storage-method-constructor'>/**
+</span> * @method constructor Storage
+ */
+var Storage = function Storage() {
+  // jshint ignore:line
+
+<span id='fishTopo-core-Storage-property-_roots'>  /**
+</span>   * @private
+   * This is used to store the elements displayed in the canvas itself, not nested in other element.
+   * 
+   * 
+   * 存储直接放在画布上的对象，而不是嵌套在其它元素中的对象。
+   * @property _roots
+   */
+  this._roots = new Map();
+<span id='fishTopo-core-Storage-property-_displayList'>  /**
+</span>   * @private
+   * The display list.
+   * 
+   * 显示列表。
+   * @property _displayList
+   */
+
+  this._displayList = [];
+<span id='fishTopo-core-Storage-property-_displayListLen'>  /**
+</span>   * @private
+   * Length of display list.
+   * 
+   * 
+   * 显示列表的长度。
+   * 
+   * @property _displayListLen
+   */
+
+  this._displayListLen = 0;
+  classUtil.inheritProperties(this, Eventful);
+};
+
+Storage.prototype = {
+  constructor: Storage,
+
+<span id='fishTopo-core-Storage-method-traverse'>  /**
+</span>   * @method traverse
+   * @param  {Function} cb
+   * @param  {Object} context
+   */
+  traverse: function traverse(cb, context) {
+    this._roots.forEach(function (el, id, map) {
+      el.traverse(cb, context);
+    });
+  },
+
+<span id='fishTopo-core-Storage-method-getDisplayList'>  /**
+</span>   * @method getDisplayList
+   * Get the display list.
+   * 
+   * 
+   * 获取显示列表。
+   * 
+   * @param {Boolean} [needUpdate=false] 
+   * Wether update the list before returnning.
+   * 
+   * 
+   * 是否在返回前更新该数组。
+   * @param {Boolean} [includeIgnore=false] 
+   * Wether include the ignore array, this is valid when needUpdate is true.
+   * 
+   * 
+   * 是否包含 ignore 的数组, 在 needUpdate 为 true 的时候有效。
+   * @return {Array&lt;Displayable&gt;}
+   */
+  getDisplayList: function getDisplayList(needUpdate, includeIgnore) {
+    includeIgnore = includeIgnore || false;
+
+    if (needUpdate) {
+      this.updateDisplayList(includeIgnore);
+    }
+
+    return this._displayList;
+  },
+
+<span id='fishTopo-core-Storage-method-updateDisplayList'>  /**
+</span>   * @method updateDisplayList
+   * Update the display list, will be invoked before each redering process. 
+   * This method will traverse the whole tree using deep first method, update all the transformations of Groups and Shapes, 
+   * save all the visiable Shapes into an array. Finally, the array is sorted by the piority, zlevel &gt; z &gt; insert order.
+   * 
+   * 
+   * 更新显示列表，每次绘制前都会调用。
+   * 该方法会先深度优先遍历整个树，更新所有 Group 和 Shape 的变换并且把所有可见的Shape保存到数组中，
+   * 最后根据优先级排序得到绘制队列，zlevel &gt; z &gt; 插入顺序。
+   * @param {Boolean} [includeIgnore=false] 
+   * Wether include the ignore array.
+   * 
+   * 
+   * 是否包含 ignore 的数组。
+   */
+  updateDisplayList: function updateDisplayList(includeIgnore) {
+    var _this = this;
+
+    this._displayListLen = 0;
+    var displayList = this._displayList;
+
+    this._roots.forEach(function (el, id, map) {
+      _this._updateAndAddDisplayable(el, null, includeIgnore); //recursive update
+
+    });
+
+    displayList.length = this._displayListLen;
+    env.canvasSupported &amp;&amp; timsort(displayList, this.displayableSortFunc);
+  },
+  displayableSortFunc: function displayableSortFunc(a, b) {
+    if (a.qlevel === b.qlevel) {
+      if (a.z === b.z) {
+        // if (a.z2 === b.z2) {
+        //     // FIXME Slow has renderidx compare
+        //     // http://stackoverflow.com/questions/20883421/sorting-in-javascript-should-every-compare-function-have-a-return-0-statement
+        //     // https://github.com/v8/v8/blob/47cce544a31ed5577ffe2963f67acb4144ee0232/src/js/array.js#L1012
+        //     return a.__renderidx - b.__renderidx;
+        // }
+        return a.z2 - b.z2;
+      }
+
+      return a.z - b.z;
+    }
+
+    return a.qlevel - b.qlevel;
+  },
+
+<span id='fishTopo-core-Storage-method-_updateAndAddDisplayable'>  /**
+</span>   * @method _updateAndAddDisplayable
+   * @param {*} el 
+   * @param {*} clipPaths 
+   * @param {*} includeIgnore 
+   */
+  _updateAndAddDisplayable: function _updateAndAddDisplayable(el, clipPaths, includeIgnore) {
+    if (el.ignore &amp;&amp; !includeIgnore) {
+      return;
+    }
+
+    if (el.__dirty) {
+      el.composeParentTransform();
+    }
+
+    var userSetClipPath = el.clipPath;
+
+    if (userSetClipPath) {
+      // FIXME:performance issue here
+      if (clipPaths) {
+        clipPaths = clipPaths.slice();
+      } else {
+        clipPaths = [];
+      }
+
+      var currentClipPath = userSetClipPath;
+      var parentClipPath = el; // Recursively add clip path
+
+      while (currentClipPath) {
+        // clipPath 的变换是基于使用这个 clipPath 的元素
+        currentClipPath.parent = parentClipPath;
+        currentClipPath.composeParentTransform();
+        clipPaths.push(currentClipPath);
+        parentClipPath = currentClipPath;
+        currentClipPath = currentClipPath.clipPath;
+      }
+    }
+
+    el.__clipPaths = clipPaths;
+    this._displayList[this._displayListLen++] = el;
+
+    if (el.type === &#39;group&#39;) {
+      var children = el.children;
+
+      for (var i = 0; i &lt; children.length; i++) {
+        var child = children[i]; // Force to mark as dirty if group is dirty
+        // FIXME: __dirtyPath ?
+
+        if (el.__dirty) {
+          child.__dirty = true;
+        }
+
+        this._updateAndAddDisplayable(child, clipPaths, includeIgnore);
+      }
+    }
+  },
+
+<span id='fishTopo-core-Storage-method-addToRoot'>  /**
+</span>   * @method addToRoot
+   * Add element to root.
+   * 
+   * 
+   * 添加元素到根节点。
+   * @param {Element} el
+   */
+  addToRoot: function addToRoot(el) {
+    if (el.__storage === this) {
+      return;
+    }
+
+    this.trigger(&quot;beforeAddToRoot&quot;, el);
+    el.trigger(&quot;beforeAddToRoot&quot;, el);
+    this.addToStorage(el);
+  },
+
+<span id='fishTopo-core-Storage-method-delFromRoot'>  /**
+</span>   * @method delFromRoot
+   * Delete element from root.
+   * 
+   * 
+   * 删除指定元素。
+   * @param {string|Array.&lt;String&gt;} [el] 如果为空清空整个Storage
+   */
+  delFromRoot: function delFromRoot(el) {
+    var _this2 = this;
+
+    if (el == null) {
+      // Clear all.
+      this._roots.forEach(function (el, id, map) {
+        _this2.delFromStorage(el);
+      });
+
+      this._roots = new Map();
+      this._displayList = [];
+      this._displayListLen = 0;
+      return;
+    }
+
+    if (el.forEach) {
+      // Array like.
+      el.forEach(function (item, index) {
+        _this2.delFromRoot(item);
+      });
+      return;
+    }
+
+    this.delFromStorage(el);
+  },
+
+<span id='fishTopo-core-Storage-method-addToStorage'>  /**
+</span>   * @method addToStorage
+   * Add element to Storage.
+   * 
+   * 
+   * 把元素添加到 Storage 中。
+   * @param {Element} el 
+   */
+  addToStorage: function addToStorage(el) {
+    this._roots.set(el.id, el);
+
+    this.trigger(&quot;addToStorage&quot;, el);
+    el.trigger(&quot;addToStorage&quot;, this);
+    return this;
+  },
+  getElement: function getElement(id) {
+    return this._roots.get(id);
+  },
+
+<span id='fishTopo-core-Storage-method-delFromStorage'>  /**
+</span>   * @method delFromStorage
+   * Delete element from Storage.
+   * 
+   * 
+   * 从 Storage 中删除元素。
+   * @param {Element} el 
+   */
+  delFromStorage: function delFromStorage(el) {
+    if (this._roots.get(el.id)) {
+      this._roots[&quot;delete&quot;](el.id);
+
+      this.trigger(&quot;delFromStorage&quot;, el);
+      el.trigger(&quot;delFromStorage&quot;, this);
+    }
+
+    return this;
+  },
+
+<span id='fishTopo-core-Storage-method-dispose'>  /**
+</span>   * @method dispose
+   * Clear and dispose Storage.
+   * 
+   * 
+   * 清空并且释放 Storage。
+   */
+  dispose: function dispose() {
+    this._renderList = null;
+    this._roots = null;
+  }
+};
+classUtil.mixin(Storage, Eventful);
+var _default = Storage;
+module.exports = _default;</pre>
+</body>
+</html>

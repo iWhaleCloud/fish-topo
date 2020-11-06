@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">var dataUtil = require(&quot;../../utils/data_structure_util&quot;);
+
+var _constants = require(&quot;../../utils/constants&quot;);
+
+var mathSin = _constants.mathSin;
+var mathCos = _constants.mathCos;
+var PI = _constants.PI;
+
+var Shape = require(&quot;./Shape&quot;);
+
+function _typeof(obj) { &quot;@babel/helpers - typeof&quot;; if (typeof Symbol === &quot;function&quot; &amp;&amp; typeof Symbol.iterator === &quot;symbol&quot;) { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj &amp;&amp; typeof Symbol === &quot;function&quot; &amp;&amp; obj.constructor === Symbol &amp;&amp; obj !== Symbol.prototype ? &quot;symbol&quot; : typeof obj; }; } return _typeof(obj); }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError(&quot;Cannot call a class as a function&quot;); } }
+
+function _defineProperties(target, props) { for (var i = 0; i &lt; props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if (&quot;value&quot; in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _possibleConstructorReturn(self, call) { if (call &amp;&amp; (_typeof(call) === &quot;object&quot; || typeof call === &quot;function&quot;)) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError(&quot;this hasn&#39;t been initialised - super() hasn&#39;t been called&quot;); } return self; }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== &quot;function&quot; &amp;&amp; superClass !== null) { throw new TypeError(&quot;Super expression must either be null or a function&quot;); } subClass.prototype = Object.create(superClass &amp;&amp; superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+<span id='fishTopo-graphic-shape-Star'>/**
+</span> * @class fishTopo.graphic.shape.Star 
+ * n角星（n&gt;3）
+ * @docauthor 大漠穷秋 &lt;damoqiongqiu@126.com&gt;
+ */
+var Star =
+/*#__PURE__*/
+function (_Shape) {
+  _inherits(Star, _Shape);
+
+<span id='fishTopo-graphic-shape-Star-method-constructor'>  /**
+</span>   * @method constructor Star
+   * @param {Object} options 
+   */
+  function Star(options) {
+    var _this;
+
+    _classCallCheck(this, Star);
+
+    _this = _possibleConstructorReturn(this, _getPrototypeOf(Star).call(this, dataUtil.merge({
+      shape: {
+        cx: 0,
+        cy: 0,
+        n: 3,
+        r0: null,
+        r: 0
+      }
+    }, options, true)));
+<span id='fishTopo-graphic-shape-Star-property-type'>    /**
+</span>     * @property {String} type
+     */
+
+    _this.type = &#39;star&#39;;
+    return _this;
+  }
+<span id='fishTopo-graphic-shape-Star-method-buildPath'>  /**
+</span>   * @method buildPath
+   * 绘制元素路径
+   * @param {Object} ctx 
+   * @param {String} shape 
+   */
+
+
+  _createClass(Star, [{
+    key: &quot;buildPath&quot;,
+    value: function buildPath(ctx, shape) {
+      var n = shape.n;
+
+      if (!n || n &lt; 2) {
+        return;
+      }
+
+      var x = shape.cx;
+      var y = shape.cy;
+      var r = shape.r;
+      var r0 = shape.r0; // 如果未指定内部顶点外接圆半径，则自动计算
+
+      if (r0 == null) {
+        r0 = n &gt; 4 // 相隔的外部顶点的连线的交点，
+        // 被取为内部交点，以此计算r0
+        ? r * mathCos(2 * PI / n) / mathCos(PI / n) // 二三四角星的特殊处理
+        : r / 3;
+      }
+
+      var dStep = PI / n;
+      var deg = -PI / 2;
+      var xStart = x + r * mathCos(deg);
+      var yStart = y + r * mathSin(deg);
+      deg += dStep; // 记录边界点，用于判断inside
+
+      ctx.moveTo(xStart, yStart);
+
+      for (var i = 0, end = n * 2 - 1, ri; i &lt; end; i++) {
+        ri = i % 2 === 0 ? r0 : r;
+        ctx.lineTo(x + ri * mathCos(deg), y + ri * mathSin(deg));
+        deg += dStep;
+      }
+
+      ctx.closePath();
+    }
+  }]);
+
+  return Star;
+}(Shape);
+
+module.exports = Star;</pre>
+</body>
+</html>
