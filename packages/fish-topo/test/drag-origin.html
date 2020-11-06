@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Drag on Object with Origin</title>
+    <script src="../dist/fish-topo.js"></script>
+</head>
+<body>
+    <div id="main" style="width:1024px;height:800px;"></div>
+    <script type="text/javascript">
+        var topo = FishTopo.init(document.getElementById('main'));
+        const image = new FishTopo.Image({
+            draggable: true,
+            rotation: 2,
+            origin: [50, 50],
+            style: {
+                image: './data/test.png',
+                height: 100,
+                width: 100
+            }
+        })
+        topo.add(image);
+
+        //TODO:group 在拖拽时有bug
+        const group = new FishTopo.Group({
+            position: [100, 100]
+        })
+        const image2 = new FishTopo.Image({
+            draggable: true,
+            rotation: 2,
+            origin: [50, 50],
+            style: {
+                image: './data/test.png',
+                height: 100,
+                width: 100
+            }
+        });
+        topo.add(group);
+        group.add(image2);
+    </script>
+</body>
+</html>

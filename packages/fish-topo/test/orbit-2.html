@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Animation</title>
+    <script src="../dist/fish-topo.js"></script>
+</head>
+<body style="background-color:black; margin:0px;">
+    <div id="main" style="width:1000px;height:600px;"></div>
+    <script type="text/javascript">
+        let topo = FishTopo.init(document.getElementById('main'));
+        let NUMBER = 5000;
+
+        for (let i = 0; i < NUMBER; i++) {
+            let circleShape = new FishTopo.Circle({
+                shape: {
+                    cx: 10,
+                    cy: 10,
+                    r: 5 + Math.random() * 10
+                },
+                style: {
+                    stroke: 'red',
+                    fill: 'white'
+                }
+            });
+            topo.add(circleShape);
+
+            let ap = circleShape.animate();
+            let points = [];
+            let point = [
+                Math.random() * topo.getWidth(),
+                Math.random() * topo.getHeight()
+            ];
+            //star.position = point;
+            points.push(point);
+            for (let j = 1; j < 10; j++) {
+                let point = [
+                    Math.random() * topo.getWidth(),
+                    Math.random() * topo.getHeight()
+                ];
+                ap.when(j * 2000, {
+                    position : point
+                });
+                points.push(point);
+            }
+
+            ap.start(true,'spline');
+        }
+    </script>
+</body>
+</html>

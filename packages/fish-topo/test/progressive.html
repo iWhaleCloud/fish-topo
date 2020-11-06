@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Progressive Rendering</title>
+    <script src="../dist/fish-topo.js"></script>
+</head>
+<body>
+    <div id="main" style="width:1000px;height:600px;"></div>
+    <script type="text/javascript">
+        // 初始化qrenderer
+        var topo = FishTopo.init(document.getElementById('main'));
+
+        var x1 = Math.random() * 2;
+        var y1 = Math.random() * topo.getHeight();
+        var cpx1 = Math.random() * topo.getWidth();
+        var cpy1 = Math.random() * topo.getHeight();
+        var x2 = Math.random() * topo.getWidth();
+        var y2 = Math.random() * topo.getHeight();
+        for (var i = 0; i < 10000; i++) {
+            x1 += (Math.random() - 0.5) * 10;
+            y1 += (Math.random() - 0.5) * 10;
+            cpx1 += (Math.random() - 0.5) * 10;
+            cpy1 += (Math.random() - 0.5) * 10;
+            x2 += (Math.random() - 0.5) * 10;
+            y2 += (Math.random() - 0.5) * 10;
+            var checkpoint = !(i % 1000);
+            var checkpointIdx = Math.round(i / 1000);
+            topo.add(new FishTopo.BezierCurve({
+                shape: {
+                    x1: x1,
+                    y1: y1,
+                    cpx1: cpx1,
+                    cpy1: cpy1,
+                    x2: x2,
+                    y2: y2
+                },
+                style: {
+                    lineWidth: 2,
+                    opacity: 0.1,
+                    stroke: 'rgb(' + [
+                        Math.round(255 * checkpointIdx / 10),
+                        Math.round(255 * checkpointIdx / 10),
+                        Math.round(255 * checkpointIdx / 10)
+                    ].join(',') + ')'
+                },
+                progressive: checkpoint ? -1 : Math.floor(i / 100)
+            }));
+        }
+    </script>
+</body>
+</html>

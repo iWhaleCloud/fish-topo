@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Group Nested</title>
+    <script src="../dist/fish-topo.js"></script>
+</head>
+<body>
+    <div id="main" style="width:1024px;height:800px;"></div>
+    <script type="text/javascript">
+        let topo = FishTopo.init(document.getElementById('main'));
+        let group1 = new FishTopo.Group({
+            draggable: true,
+            position: [100, 100],
+            shape: {
+                width:400,
+                height:300
+            },
+            style: {
+                fill:'#ccc'
+            }
+        });
+        let group2 = new FishTopo.Group({
+            draggable: true,
+            position: [0, 0],
+            shape: {
+                width:300,
+                height:200
+            },
+            style: {
+                fill:'#ff3300'
+            }
+        });
+        let group3 = new FishTopo.Group({
+            draggable: true,
+            position: [0, 0],
+            shape: {
+                width:200,
+                height:100
+            },
+            style: {
+                fill:'#0033ff'
+            }
+        });
+        let rect = new FishTopo.Rect({
+            draggable:true,
+            position:[10,10],
+            shape: {
+                r: 0,
+                width: 50,
+                height: 50
+            },
+            style: {
+                fill: '#00ff00',
+                lineWidth: 5,
+                text:'矩形',
+                textPosition:'inside'
+            }
+        });
+        group3.add(rect);
+        group2.add(group3);
+        group1.add(group2);
+        topo.add(group1);
+    </script>
+    <div id="Main" style="width:600px;height:400px;"></div>
+</body>
+</html>

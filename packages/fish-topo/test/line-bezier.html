@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Bezier Animation</title>
+    <script src="../dist/fish-topo.js"></script>
+</head>
+<body>
+    <div id="main" style="width:1000px;height:600px;"></div>
+    <script type="text/javascript">
+        var topo = FishTopo.init(document.getElementById('main'));
+
+        var curve = new FishTopo.BezierCurve({
+            position: [0, 0],
+            scale: [1, 1],
+            shape: {
+                x1: 10,
+                y1: 400,
+                cpx1: 0,
+                cpy1: 0,
+                cpx2: 0,
+                cpy2: 0,
+                x2: 300,
+                y2: 30
+            },
+            draggable: true
+        });
+
+        topo.add(curve);
+
+        curve.animate()
+            .when(2000,{
+                shape:{
+                    percent:0
+                }
+            })
+            .start();
+    </script>
+</body>
+</html>

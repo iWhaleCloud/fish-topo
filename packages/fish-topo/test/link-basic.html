@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Group Link</title>
+    <script src="../dist/fish-topo.js"></script>
+</head>
+<body>
+    <div id="main" style="width:1024px;height:800px;"></div>
+    <script type="text/javascript">
+        let topo = FishTopo.init(document.getElementById('main'));
+
+        let rect1 = new FishTopo.Rect({
+            draggable:true,
+            linkable:true,
+            position: [50, 50],
+            shape: {
+                r: 0,
+                width: 50,
+                height: 50
+            },
+            style: {
+                fill: '#ff0000',
+                lineWidth: 5,
+                text:'矩形',
+                textPosition:'inside'
+            }
+        });
+        topo.add(rect1);
+
+        let rect2 = new FishTopo.Rect({
+            draggable:true,
+            linkable:true,
+            position: [300, 50],
+            shape: {
+                r: 0,
+                width: 50,
+                height: 50
+            },
+            style: {
+                fill: '#ff0000',
+                lineWidth: 5,
+                text:'矩形',
+                textPosition:'inside'
+            }
+        });
+        topo.add(rect2);
+
+        topo.createLink({
+            type:'line',
+            fromId:rect1.id,
+            toId:rect2.id,
+            fromPosition:'R',
+            toPosition:'L',
+            position: [0, 0],
+            draggable: true,
+            isCable:true,
+            style: {
+                stroke: 'rgba(220, 20, 60, 0.8)',
+                lineWidth: 2
+            },
+            shape: {
+                x1: 0,
+                y1: 0,
+                x2: 10,
+                y2: 0,
+                percent: 1
+            }
+        });
+
+        let rect3 = new FishTopo.Rect({
+            draggable:true,
+            linkable:true,
+            position: [300, 200],
+            shape: {
+                r: 0,
+                width: 50,
+                height: 50
+            },
+            style: {
+                fill: '#ff0000',
+                lineWidth: 5,
+                text:'矩形',
+                textPosition:'inside'
+            }
+        });
+        topo.add(rect3);
+
+        let rect4 = new FishTopo.Rect({
+            draggable:true,
+            linkable:true,
+            position: [50, 300],
+            shape: {
+                r: 0,
+                width: 50,
+                height: 50
+            },
+            style: {
+                fill: '#ff0000',
+                lineWidth: 5,
+                text:'矩形',
+                textPosition:'inside'
+            }
+        });
+        topo.add(rect4);
+
+        topo.createLink({
+            type:'visio',
+            fromId:rect3.id,
+            toId:rect4.id,
+            fromPosition:'R',
+            toPosition:'L',
+            position: [0, 0],
+            draggable: true,
+            isCable:true,
+            style: {
+                lineWidth: 2
+            },
+            shape: {
+                points:[
+                    [0,10],
+                    [10,10]
+                ]
+            }
+        });
+        
+    </script>
+    <div id="Main" style="width:600px;height:400px;"></div>
+</body>
+</html>

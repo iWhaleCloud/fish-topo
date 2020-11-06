@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Bar Animation</title>
+    <script src="../dist/fish-topo.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+</head>
+<body>
+    <script type="text/javascript">
+        var row = 50;
+        var column = 50;
+        for (var k = 0; k < row; k++) {
+            var div = document.createElement('div');
+            var width = 600;
+            var height = 300;
+            div.style.width = width + 'px';
+            div.style.height = height + 'px';
+            document.body.appendChild(div);
+            // 初始化qrenderer
+            var topo = FishTopo.init(div, {
+                renderer: 'canvas'
+            });
+
+            for (var i = 0; i < column; i++) {
+                var h = height * Math.random();
+                var barShape = new FishTopo.Rect({
+                    shape: {
+                        x: i * width / column,
+                        y: height,
+                        width: width / column,
+                        height: 0
+                    },
+                    style: {
+                        fill: 'rgb(0, 0, 180)'
+                    },
+                    onmouseover: function () {
+                        this.stopAnimation()
+                            .animate()
+                            .when(0, {
+                                style:{
+                                    fill: 'rgb(0, 0, 180)'
+                                }
+                            })
+                            .when(200, {
+                                style:{
+                                    fill: 'rgb(180, 0, 0)'
+                                }
+                            })
+                            .start();
+                    },
+                    onmouseout: function () {
+                        this.stopAnimation()
+                            .animate()
+                            .when(0, {
+                                style:{
+                                    fill: 'rgb(180, 0, 0)'
+                                }
+                            })
+                            .when(200, {
+                                style:{
+                                    fill: 'rgb(0, 0, 180)'
+                                }
+                            })
+                            .start();
+                    }
+                });
+                topo.add(barShape);
+
+                barShape.animate()
+                .when(0,{
+                    shape:{
+                        height: barShape.shape.height,
+                        y: barShape.shape.y
+                    }
+                })
+                .when(500,{
+                    shape:{
+                        height: h,
+                        y: height - h
+                    }
+                })
+                .start();
+            }
+        }
+    </script>
+</body>
+</html>

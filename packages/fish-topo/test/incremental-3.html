@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Incremental Rendering</title>
+    <script src="../dist/fish-topo.js"></script>
+</head>
+<body style="margin:0px;">
+    <canvas id="main" width="1000px" height="600px" style="width:1000px;height:600px;"></canvas>
+    <script type="text/javascript">
+        var topo = FishTopo.init(document.getElementById('main'));
+
+        topo.add(new FishTopo.Rect({
+            shape: {
+                x: 0,
+                y: 0,
+                width: topo.getWidth(),
+                height: topo.getHeight()
+            },
+            style: {
+                fill: 'red'
+            }
+        }));
+
+        var countText = new FishTopo.Text({
+            zlevel: 1,
+            style: {
+                text: 10000,
+                x: 10,
+                y: 10,
+                textFont: '40px sans-serif',
+                textFill: '#fff',
+                textStroke: '#000',
+                textStrokeWidth: 2
+            }
+        });
+        topo.add(countText);
+
+        var group = new FishTopo.Group();
+        topo.add(group);
+        for (var i = 0; i < 10000; i++) {
+            var circleShape = new FishTopo.Circle({
+                shape: {
+                    r: 5 + Math.random() * 5
+                },
+                style: {
+                    fill: '#121',
+                    blend: 'lighter'
+                },
+                incremental: true,
+                position: [Math.random() * topo.getWidth(), Math.random() * topo.getHeight()]
+            });
+            group.add(circleShape);
+        }
+
+        countText.dirty();
+    </script>
+</body>
+</html>

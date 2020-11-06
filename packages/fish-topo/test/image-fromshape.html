@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Image</title>
+    <script src="../dist/fish-topo.js"></script>
+</head>
+<body>
+    <style>
+        html, body, #main {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            background-color: #000;
+        }
+    </style>
+    <div id="main"></div>
+    <script type="text/javascript">
+        let topo = FishTopo.init(document.getElementById('main'));
+        let starShape = new FishTopo.Star({
+            shape: {
+                x: 10,
+                y: 10,
+                r: 8,
+                n: 5
+            },
+            style: {
+                stroke: 'rgb(52,179,242)',
+                fill: '#fff',
+                shadowBlur: 10,
+                shadowOffsetX: 0,
+                shadowOffsetY: 0
+            }
+        });
+        let qImage = topo.pathToImage(starShape);
+
+        //convert shape to image will improve render performace dramatically
+        let star = new FishTopo.Image({
+            position:[
+                Math.random() * topo.getWidth(),
+                Math.random() * topo.getHeight()
+            ],
+            scale: [1, 1],
+            zlevel: 1,
+            style: {
+                x: 0,
+                y: 0,
+                image: qImage.style.image
+            }
+        });
+        topo.add(star);
+    </script>
+</body>
+</html>

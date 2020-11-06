@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Image</title>
+    <script src="../dist/fish-topo.js"></script>
+</head>
+<body>
+    <style>
+        html, body, #main {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+    <div id="main"></div>
+    <script type="text/javascript">
+        let topo = FishTopo.init(document.getElementById('main'));
+        topo.configLayer(0, {
+            motionBlur: true,
+            lastFrameAlpha: 0.5
+        });
+
+        let image = new FishTopo.Image({
+            position: [20, 20],
+            scale: [1, 1],
+            style: {
+                x: 0,
+                y: 0,
+                image: './data/test.png',
+                width: 100,
+                height: 100
+            },
+            draggable: true
+        });
+
+        topo.add(image);
+
+        image.animate()
+        .when(5000,{
+            position:[500,500]
+        })
+        .start(true);
+    </script>
+</body>
+</html>

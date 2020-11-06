@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Text Rotation</title>
+    <script src="../dist/fish-topo.js"></script>
+</head>
+<body>
+    <div id="main" style="width:1000px;height:600px;"></div>
+    <script type="text/javascript">
+        // 初始化qrenderer
+        var topo = FishTopo.init(document.getElementById('main'));
+        var text1 = new FishTopo.Text({
+            draggable:true,
+            style: {
+                text: 'aaaaaa',
+                fontSize:32
+            },
+            position: [200, 200]
+        });
+        var text2 = new FishTopo.Text({
+            draggable:true,
+            style: {
+                text: 'aaaaaa',
+                fontSize:32
+            },
+            position: [300, 200]
+        });
+
+        var ap=text1.animate()
+        .when(2000,{
+            rotation: Math.PI
+        })
+        .start();
+
+        // test animation puase/resume process
+        setTimeout(() => {
+            ap.pause();
+        }, 800);
+        setTimeout(() => {
+            ap.resume();
+        }, 1500);
+
+        text2.animate()
+        .when(2000,{
+            rotation:-Math.PI
+        })
+        .start();
+        
+        topo.add(text1);
+        topo.add(text2);
+    </script>
+</body>
+</html>

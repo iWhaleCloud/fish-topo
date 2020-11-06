@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Text Rotation</title>
+    <script src="../dist/fish-topo.js"></script>
+</head>
+<body>
+    <div id="main" style="width:1000px;height:600px;"></div>
+    <script type="text/javascript">
+        let topo = FishTopo.init(document.getElementById('main'));
+
+        let scaleX=2;
+        let scaleY=1;
+        let width = 100;
+        let height = 20;
+        let rotation = 0;
+        let rect = new FishTopo.Rect({
+            origin: [0,height/2],
+            position: [width*scaleX, width*scaleX],
+            scale: [2, 1],
+            rotation: rotation,
+            shape: {
+                r: 0,
+                width: width,
+                height: height
+            },
+            style: {
+                fill: '#ff0000',
+                lineWidth: 5,
+                text:'矩形',
+                textPosition:'inside'
+            }
+        });
+        topo.add(rect);
+
+        let r=10;
+        let circle=new FishTopo.Circle({
+            position:[width*scaleX, width*scaleX+r],
+            shape: {
+                r:r
+            },
+            style:{
+                fill:'#3333ff'
+            }
+        });
+        topo.add(circle);
+        
+        setInterval(()=>{
+            let rotation=rect.rotation-(30*Math.PI/180);
+            rect.rotation=rotation;
+            rect.dirty();
+        },1000);
+    </script>
+</body>
+</html>
