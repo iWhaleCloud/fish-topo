@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Path Merge</title>
+    <script src="../dist/fish-topo.js"></script>
+</head>
+<body>
+    <div id="main" style="width:1024px;height:800px;"></div>
+    <script>
+        // 初始化qrenderer
+        var topo = FishTopo.init(document.getElementById('main'));
+
+        var lineList = [];
+        for (var i = 0; i < 300; i ++) {
+            var line = new FishTopo.Line({
+                shape: {
+                    x1: 0,
+                    y1: i * 3,
+                    x2: 1000,
+                    y2: i * 3
+                }
+            });
+            lineList.push(line);
+        }
+        topo.add(FishTopo.pathUtil.mergePath(lineList, {
+            style: {
+                stroke: 'black',
+                fill: 'none'
+            }
+        }));
+    </script>
+    <div id="main" style="width:1000px;height:800px;"></div>
+</body>
+</html>

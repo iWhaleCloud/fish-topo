@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>drag-multi-objects</title>
+    <script src="../dist/fish-topo.js"></script>
+</head>
+<body>
+    <div id="main" style="width:1024px;height:800px;"></div>
+    <p>
+        Hold Ctrl key for multi-selection and drag-drop.
+    </p>
+    <script type="text/javascript">
+        var topo = FishTopo.init(document.getElementById('main'));
+        var circle1 = new FishTopo.Circle({
+            shape: {
+                cx: 20,
+                cy: 20,
+                r: 30
+            },
+            style: {
+                fill: 'blue'
+            },
+            draggable: true
+        });
+
+        var circle2 = new FishTopo.Circle({
+            shape: {
+                cx: 60,
+                cy: 60,
+                r: 30
+            },
+            style: {
+                fill: 'blue'
+            },
+            draggable: true
+        });
+
+        circle1.on('mouseover', function () {
+            topo.host.style.cursor = 'move';
+        });
+        circle1.on('mouseout', function () {
+            topo.host.style.cursor = 'default';
+        });
+        circle1.on('keydown', function (event) {
+            console.log('keydown');
+            console.log(event);
+        });
+        circle1.on('keyup', function (event) {
+            console.log('keyup');
+            console.log(event);
+        });
+        circle1.on('keypress', function (event) {
+            console.log('keypress');
+            console.log(event);
+        });
+
+        // topo.eventDispatcher.on("pagekeydown",function(event){
+        //     console.log("topo pagekeydown...");
+        // });
+
+        topo.add(circle1);
+        topo.add(circle2);
+    </script>
+</body>
+</html>

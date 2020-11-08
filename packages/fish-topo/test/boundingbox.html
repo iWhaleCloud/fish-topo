@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>包围盒计算测试</title>
+    <script src="../dist/fish-topo.js"></script>
+</head>
+<body>
+    <div id="main"></div>
+</body>
+    <script type="text/javascript">
+        let canvas = document.createElement('canvas')
+        document.getElementById("main").appendChild(canvas);
+        canvas.width = 1024;
+        canvas.height = 600;
+
+        let ctx = canvas.getContext("2d");
+        ctx.translate(200,0);
+        ctx.rotate(45 * Math.PI / 180);
+        ctx.scale(2,1);
+
+        let path = new FishTopo.PathProxy();
+        path.beginPath(ctx);
+        path.moveTo(20, 20);
+        path.bezierCurveTo(100, 0, -100, 100, 100, 100);
+        path.quadraticCurveTo(400, 10, 200, 200);
+        path.arc(200, 200, 50, 1, 10, true);
+        path.stroke(ctx);
+
+        let bb = path.getBoundingRect();
+        ctx.beginPath();
+        ctx.strokeRect(bb.x1, bb.y1, bb.width, bb.height);
+        ctx.closePath();
+        console.log(bb);
+    </script>
+</html>

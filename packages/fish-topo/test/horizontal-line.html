@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Horizontal Line</title>
+    <script src="../dist/fish-topo.js"></script>
+</head>
+<body>
+    <div id="main" style="width:1024px;height:800px;"></div>
+    <script type="text/javascript">
+        var topo = FishTopo.init(document.getElementById('main'));
+        var line = new FishTopo.Line({
+            shape: {
+                x1: 30,
+                y1: 50,
+                x2: 100,
+                y2: 50
+            }
+        });
+        topo.add(line);
+    </script>
+</body>
+</html>

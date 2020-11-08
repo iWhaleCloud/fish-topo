@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='fishTopo-graphic-gradient-Gradient'>/**
+</span> * @class fishTopo.graphic.gradient.Gradient 
+ * 渐变
+ * @docauthor 大漠穷秋 &lt;damoqiongqiu@126.com&gt;
+ */
+
+<span id='fishTopo-graphic-gradient-Gradient-method-constructor'>/**
+</span> * @method constructor Gradient
+ * @param {Array&lt;Object&gt;} colorStops
+ */
+var Gradient = function Gradient(colorStops) {
+  this.colorStops = colorStops || [];
+};
+
+Gradient.prototype = {
+  constructor: Gradient,
+  addColorStop: function addColorStop(offset, color) {
+    this.colorStops.push({
+      offset: offset,
+      color: color
+    });
+  }
+};
+var _default = Gradient;
+module.exports = _default;</pre>
+</body>
+</html>

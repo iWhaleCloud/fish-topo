@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">var imageHelper = require(&quot;../utils/image_util&quot;);
+
+var classUtil = require(&quot;../utils/class_util&quot;);
+
+var Element = require(&quot;./Element&quot;);
+
+var BoundingRect = require(&quot;./BoundingRect&quot;);
+
+var Linkable = require(&quot;./link/Linkable&quot;);
+
+function _typeof(obj) { &quot;@babel/helpers - typeof&quot;; if (typeof Symbol === &quot;function&quot; &amp;&amp; typeof Symbol.iterator === &quot;symbol&quot;) { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj &amp;&amp; typeof Symbol === &quot;function&quot; &amp;&amp; obj.constructor === Symbol &amp;&amp; obj !== Symbol.prototype ? &quot;symbol&quot; : typeof obj; }; } return _typeof(obj); }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError(&quot;Cannot call a class as a function&quot;); } }
+
+function _defineProperties(target, props) { for (var i = 0; i &lt; props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if (&quot;value&quot; in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _possibleConstructorReturn(self, call) { if (call &amp;&amp; (_typeof(call) === &quot;object&quot; || typeof call === &quot;function&quot;)) { return call; } return _assertThisInitialized(self); }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError(&quot;this hasn&#39;t been initialised - super() hasn&#39;t been called&quot;); } return self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== &quot;function&quot; &amp;&amp; superClass !== null) { throw new TypeError(&quot;Super expression must either be null or a function&quot;); } subClass.prototype = Object.create(superClass &amp;&amp; superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+<span id='fishTopo-graphic-QImage'>/**
+</span> * @class fishTopo.graphic.QImage 
+ * @docauthor 大漠穷秋 &lt;damoqiongqiu@126.com&gt;
+ */
+var QImage =
+/*#__PURE__*/
+function (_Element) {
+  _inherits(QImage, _Element);
+
+<span id='fishTopo-graphic-QImage-method-constructor'>  /**
+</span>   * @method constructor QImage
+   * @param {Object} options
+   */
+  function QImage(options) {
+    var _this;
+
+    _classCallCheck(this, QImage);
+
+    _this = _possibleConstructorReturn(this, _getPrototypeOf(QImage).call(this, options));
+<span id='fishTopo-graphic-QImage-property-type'>    /**
+</span>     * @property {String}
+     */
+
+    _this.type = &#39;image&#39;;
+    classUtil.inheritProperties(_assertThisInitialized(_this), Linkable, _this.options);
+    classUtil.copyOwnProperties(_assertThisInitialized(_this), _this.options, [&#39;style&#39;, &#39;shape&#39;]);
+    return _this;
+  }
+<span id='fishTopo-graphic-QImage-method-render'>  /**
+</span>   * @method render
+   */
+
+
+  _createClass(QImage, [{
+    key: &quot;render&quot;,
+    value: function render() {
+      var ctx = this.ctx;
+      var prevEl = this.prevEl;
+      var style = this.style;
+      var src = style.image; // Must bind each time
+
+      style.bind(ctx, this, prevEl);
+      var image = this._image = imageHelper.createOrUpdateImage(src, this._image, this, this.onload);
+
+      if (!image || !imageHelper.isImageReady(image)) {
+        return;
+      }
+
+      var x = style.x || 0;
+      var y = style.y || 0;
+      var width = style.width;
+      var height = style.height;
+      var aspect = image.width / image.height;
+
+      if (width == null &amp;&amp; height != null) {
+        // Keep image/height ratio
+        width = height * aspect;
+      } else if (height == null &amp;&amp; width != null) {
+        height = width / aspect;
+      } else if (!width &amp;&amp; !height) {
+        width = image.width;
+        height = image.height;
+      }
+
+      this.applyTransform(ctx);
+
+      if (style.sWidth &amp;&amp; style.sHeight) {
+        var sx = style.sx || 0;
+        var sy = style.sy || 0;
+        ctx.drawImage(image, sx, sy, style.sWidth, style.sHeight, x, y, width, height);
+      } else if (style.sx &amp;&amp; style.sy) {
+        var _sx = style.sx;
+        var _sy = style.sy;
+        var sWidth = width - _sx;
+        var sHeight = height - _sy;
+        ctx.drawImage(image, _sx, _sy, sWidth, sHeight, x, y, width, height);
+      } else {
+        ctx.drawImage(image, x, y, width, height);
+      }
+
+      Element.prototype.render.call(this, ctx, prevEl);
+    }
+<span id='fishTopo-graphic-QImage-method-getBoundingRect'>    /**
+</span>     * @method getBoundingRect
+     */
+
+  }, {
+    key: &quot;getBoundingRect&quot;,
+    value: function getBoundingRect() {
+      var style = this.style;
+
+      if (!style.x) {
+        style.x = 0;
+      }
+
+      if (!style.y) {
+        style.y = 0;
+      }
+
+      if (!style.width) {
+        style.width = 0;
+      }
+
+      if (!style.height) {
+        style.height = 0;
+      }
+
+      if (!this.__boundingRect) {
+        this.__boundingRect = new BoundingRect(style.x, style.y, style.width - style.x, style.height - style.y, style.width, style.height);
+      }
+
+      return this.__boundingRect;
+    }
+  }, {
+    key: &quot;toJSONObject&quot;,
+    value: function toJSONObject() {
+      var result = Element.prototype.toJSONObject.call(this);
+      result.linkable = this.linkable;
+      return result;
+    }
+  }]);
+
+  return QImage;
+}(Element);
+
+classUtil.mixin(QImage, Linkable);
+var _default = QImage;
+module.exports = _default;</pre>
+</body>
+</html>

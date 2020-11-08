@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Transform Bounding Rect</title>
+    <script src="../dist/fish-topo.js"></script>
+</head>
+<body>
+    <canvas id="main" width="1024" height="800"></canvas>
+
+    <script type="text/javascript">
+        let topo = FishTopo.init(document.getElementById('main'));
+
+        let rect = new FishTopo.Rect({
+            name:'test-rect',
+            position: [150, 200],
+            scale: [1, 1],
+            shape: {
+                width:300,
+                height:150
+            },
+            style: {
+                fill:'#ff0000'
+            },
+            draggable: true,
+            showTransformControls:true,
+        });
+        topo.add(rect);
+
+        rect.animate()
+            .when(1000, {
+                position: [200, 0],
+                scale: [2, 1]
+            })
+            .when(2000, {
+                position: [200, 200],
+                scale: [1, 1]
+            })
+            .when(3000, {
+                position: [0, 200],
+                scale: [1, 2]
+            })
+            .when(4000,{
+                scale:[1,1],
+                skew:[1.1,0],
+                rotation:-Math.PI/6
+            })
+            .during(function(){
+                createBoundingRect();
+            })
+            .done(function(){
+            })
+            .start();//.start(true)
+
+        let boundingRectList=[];
+        function createBoundingRect(){
+            boundingRectList.forEach((item,index)=>{
+                topo.remove(item);
+            });
+            boundingRectList.length=0;
+            
+            topo.storage.traverse(function (el) {
+                if (el.name === 'test-rect') {
+                    let boundingRect1 = el.getBoundingRect();
+                    let rect1=new FishTopo.Rect({
+                        shape: {
+                            x: boundingRect1.x1, 
+                            y: boundingRect1.y1, 
+                            width: boundingRect1.width, 
+                            height: boundingRect1.height
+                        },
+                        position: el.position,
+                        rotation: el.rotation,
+                        scale: el.scale,
+                        skew: el.skew,
+                        origin: el.origin && el.origin,
+                        style: {
+                            fill: null,
+                            stroke: '#000000',
+                            lineWidth: 2
+                        }
+                    });
+                    topo.add(rect1);
+                    boundingRectList.push(rect1);
+
+                    let boundingRect2 = el.getOuterBoundingRect();
+                    let rect2=new FishTopo.Rect({
+                        shape: {
+                            x: boundingRect2.x1, 
+                            y: boundingRect2.y1, 
+                            width: boundingRect2.width, 
+                            height: boundingRect2.height
+                        },
+                        style: {
+                            fill: null,
+                            stroke: '#000000',
+                            lineWidth: 2
+                        }
+                    });
+                    topo.add(rect2);
+                    boundingRectList.push(rect2);
+                }
+            });
+        }
+
+        createBoundingRect();
+
+        rect.on('moving',createBoundingRect);
+    </script>
+</body>
+</html>

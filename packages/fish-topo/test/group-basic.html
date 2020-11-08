@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Group</title>
+    <script src="../dist/fish-topo.js"></script>
+</head>
+<body>
+    <div id="main" style="width:1024px;height:800px;"></div>
+    <script type="text/javascript">
+        var topo = FishTopo.init(document.getElementById('main'));
+        var circle1 = new FishTopo.Circle({
+            scale: [1, 1],
+            shape: {
+                cx: 0,
+                cy: 0,
+                r: 10
+            },
+            hoverable: false
+        });
+        var circle2 = new FishTopo.Circle({
+            scale: [1, 1],
+            shape: {
+                cx: 10,
+                cy: 10,
+                r: 10
+            },
+            style: {
+                fill:'red'
+            },
+            hoverable: false
+        });
+
+        var group = new FishTopo.Group({
+            position: [100, 100]
+        });
+        group.add(circle1);
+        group.add(circle2);
+        topo.add(group);
+        
+        group.animate()
+            .when(1000, {
+                position: [200, 0]
+            })
+            .when(2000, {
+                position: [200, 200]
+            })
+            .when(3000, {
+                position: [0, 200]
+            })
+            .when(4000, {
+                position: [100, 100]
+            })
+            .start(true);
+
+        circle1.animate()
+            .when(100, {
+                position: [20, 0]
+            })
+            .when(200, {
+                position: [0, 0]
+            })
+            .when(300, {
+                position: [-20, 0]
+            })
+            .when(400, {
+                position: [0, 0]
+            })
+            .start(true);
+
+        topo.configLayer(0, {
+            // clearColor: 'rgba(255, 255, 255, 0.1)'
+            motionBlur: true,
+            lastFrameAlpha: 0.99
+        });
+    </script>
+    <div id="Main" style="width:600px;height:400px;"></div>
+</body>
+</html>

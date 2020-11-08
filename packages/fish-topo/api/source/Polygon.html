@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">var polyHelper = require(&quot;../../utils/poly_util&quot;);
+
+var dataUtil = require(&quot;../../utils/data_structure_util&quot;);
+
+var Shape = require(&quot;./Shape&quot;);
+
+function _typeof(obj) { &quot;@babel/helpers - typeof&quot;; if (typeof Symbol === &quot;function&quot; &amp;&amp; typeof Symbol.iterator === &quot;symbol&quot;) { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj &amp;&amp; typeof Symbol === &quot;function&quot; &amp;&amp; obj.constructor === Symbol &amp;&amp; obj !== Symbol.prototype ? &quot;symbol&quot; : typeof obj; }; } return _typeof(obj); }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError(&quot;Cannot call a class as a function&quot;); } }
+
+function _defineProperties(target, props) { for (var i = 0; i &lt; props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if (&quot;value&quot; in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _possibleConstructorReturn(self, call) { if (call &amp;&amp; (_typeof(call) === &quot;object&quot; || typeof call === &quot;function&quot;)) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError(&quot;this hasn&#39;t been initialised - super() hasn&#39;t been called&quot;); } return self; }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== &quot;function&quot; &amp;&amp; superClass !== null) { throw new TypeError(&quot;Super expression must either be null or a function&quot;); } subClass.prototype = Object.create(superClass &amp;&amp; superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+<span id='fishTopo-graphic-shape-Polygon'>/**
+</span> * @class fishTopo.graphic.shape.Polygon 
+ * 多边形
+ * @docauthor 大漠穷秋 &lt;damoqiongqiu@126.com&gt;
+ */
+var Polygon =
+/*#__PURE__*/
+function (_Shape) {
+  _inherits(Polygon, _Shape);
+
+<span id='fishTopo-graphic-shape-Polygon-method-constructor'>  /**
+</span>   * @method constructor Polygon
+   * @param {Object} options 
+   */
+  function Polygon(options) {
+    var _this;
+
+    _classCallCheck(this, Polygon);
+
+    _this = _possibleConstructorReturn(this, _getPrototypeOf(Polygon).call(this, dataUtil.merge({
+      shape: {
+        points: null,
+        smooth: false,
+        smoothConstraint: null
+      }
+    }, options, true)));
+<span id='fishTopo-graphic-shape-Polygon-property-type'>    /**
+</span>     * @property {String} type
+     */
+
+    _this.type = &#39;polygon&#39;;
+    return _this;
+  }
+<span id='fishTopo-graphic-shape-Polygon-method-buildPath'>  /**
+</span>   * @method buildPath
+   * 绘制元素路径
+   * @param {Object} ctx 
+   * @param {String} shape 
+   */
+
+
+  _createClass(Polygon, [{
+    key: &quot;buildPath&quot;,
+    value: function buildPath(ctx, shape) {
+      polyHelper.buildPath(ctx, shape, true);
+    }
+  }]);
+
+  return Polygon;
+}(Shape);
+
+module.exports = Polygon;</pre>
+</body>
+</html>

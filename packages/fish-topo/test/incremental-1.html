@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Incremental Rendering</title>
+    <script src="../dist/fish-topo.js"></script>
+</head>
+<body style="margin:0px;">
+    <canvas id="main" width="1000px" height="600px" style="width:1000px;height:600px;"></canvas>
+    <div id="counterDiv" style="font-size:32px;color:crimson;font-weight: bold;"></div>
+    <script type="text/javascript">
+        let topo = FishTopo.init(document.getElementById('main'));
+        let counter=0;
+        topo.globalAnimationMgr.on('frame', function ()  {
+            for (let i = 0; i < 2000; i++) {
+                let circleShape = new FishTopo.Circle({
+                    incremental:true,
+                    shape: {
+                        r: 1 + Math.random() * 2
+                    },
+                    style: {
+                        fill: '#121',
+                        blend: 'lighter'
+                    },
+                    position: [Math.random() * topo.getWidth(), Math.random() * topo.getHeight()]
+                });
+                topo.add(circleShape);
+            }
+            counter+=2000;
+            document.querySelector("#counterDiv").innerHTML=counter;
+        });
+
+        setInterval(function () {
+            topo.clear();
+        }, 3000);
+    </script>
+</body>
+</html>

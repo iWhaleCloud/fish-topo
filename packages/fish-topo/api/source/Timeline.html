@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">var easingFuncs = require(&quot;./easing&quot;);
+
+var _constants = require(&quot;../utils/constants&quot;);
+
+var mathMin = _constants.mathMin;
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError(&quot;Cannot call a class as a function&quot;); } }
+
+function _defineProperties(target, props) { for (var i = 0; i &lt; props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if (&quot;value&quot; in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+<span id='fishTopo-animation-Timeline'>/**
+</span> * @class fishTopo.animation.Timeline
+ * Timeline, designed to calculate the value of an attribute at a specified point.
+ * 
+ * 
+ * 时间线，用来计算元素上的某个属性在指定时间点上的数值。
+ * 
+ * @author 大漠穷秋 &lt;damoqiongqiu@126.com&gt;
+ * @docauthor 大漠穷秋 &lt;damoqiongqiu@126.com&gt;
+ */
+var Timeline =
+/*#__PURE__*/
+function () {
+<span id='fishTopo-animation-Timeline-method-constructor'>  /**
+</span>   * @method constructor Timeline
+   * @param {Object} options 
+   * @param {Element} options.element
+   * @param {Number} options.life
+   * @param {Number} options.delay
+   * @param {Boolean} options.loop
+   * @param {Number} options.gap
+   * @param {Function} options.onframe
+   * @param {String} options.easing
+   * @param {Function} options.ondestroy
+   * @param {Function} options.onrestart
+   */
+  function Timeline(options) {
+    _classCallCheck(this, Timeline);
+
+    this.element = options.element;
+    this.lifeTime = options.lifeTime || 1000;
+    this.delay = options.delay || 0;
+    this.loop = options.loop == null ? false : options.loop;
+    this.gap = options.gap || 0;
+    this.easing = options.easing || &#39;Linear&#39;;
+    this.onframe = options.onframe;
+    this.ondestroy = options.ondestroy;
+    this.onrestart = options.onrestart;
+    this._initialized = false;
+    this._pausedTime = 0;
+    this._paused = false;
+  }
+<span id='fishTopo-animation-Timeline-method-nextFrame'>  /**
+</span>   * @method nextFrame
+   * Enter next frame.
+   * 
+   * 
+   * 进入下一帧。
+   * @param {Number} globalTime 当前时间
+   * @param {Number} deltaTime  时间偏移量
+   */
+
+
+  _createClass(Timeline, [{
+    key: &quot;nextFrame&quot;,
+    value: function nextFrame(globalTime, deltaTime) {
+      // Set startTime on first frame, or _startTime may has milleseconds different between clips
+      // PENDING
+      if (!this._initialized) {
+        this._startTime = globalTime + this.delay;
+        this._initialized = true;
+      }
+
+      if (this._paused) {
+        this._pausedTime += deltaTime;
+        return;
+      }
+
+      var percent = (globalTime - this._startTime - this._pausedTime) / this.lifeTime;
+
+      if (percent &lt; 0) {
+        return;
+      }
+
+      percent = mathMin(percent, 1);
+      var easing = this.easing;
+      var easingFunc = typeof easing === &#39;string&#39; ? easingFuncs[easing] : easing;
+      var schedule = typeof easingFunc === &#39;function&#39; ? easingFunc(percent) : percent;
+
+      if (percent === 1) {
+        if (this.loop) {
+          this.restart(globalTime);
+          return &#39;restart&#39;;
+        }
+
+        return &#39;destroy&#39;;
+      } else {
+        this.fire(&#39;frame&#39;, schedule);
+        return percent;
+      }
+    }
+<span id='fishTopo-animation-Timeline-method-restart'>    /**
+</span>     * @method restart
+     * Restart the animation.
+     * 
+     * 
+     * 重新开始动画。
+     * @param {Number} globalTime 
+     */
+
+  }, {
+    key: &quot;restart&quot;,
+    value: function restart(globalTime) {
+      var remainder = (globalTime - this._startTime - this._pausedTime) % this.lifeTime;
+      this._startTime = globalTime - remainder + this.gap;
+      this._pausedTime = 0;
+    }
+<span id='fishTopo-animation-Timeline-method-fire'>    /**
+</span>     * @method fire
+     * Fire an event.
+     * 
+     * 
+     * 触发事件。
+     * @param {String} eventType 
+     * @param {Object} arg 
+     */
+
+  }, {
+    key: &quot;fire&quot;,
+    value: function fire(eventType, arg) {
+      eventType = &#39;on&#39; + eventType;
+
+      if (this[eventType]) {
+        this[eventType](this.element, arg);
+      }
+    }
+<span id='fishTopo-animation-Timeline-method-pause'>    /**
+</span>     * @method pause
+     * Pause the animation.
+     * 
+     * 
+     * 暂停动画。
+     */
+
+  }, {
+    key: &quot;pause&quot;,
+    value: function pause() {
+      this._paused = true;
+    }
+<span id='fishTopo-animation-Timeline-method-resume'>    /**
+</span>     * @method resume
+     * Resume the animation.
+     * 
+     * 
+     * 恢复运行。
+     */
+
+  }, {
+    key: &quot;resume&quot;,
+    value: function resume() {
+      this._paused = false;
+    }
+  }]);
+
+  return Timeline;
+}();
+
+module.exports = Timeline;</pre>
+</body>
+</html>

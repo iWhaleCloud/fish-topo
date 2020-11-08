@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Image</title>
+    <script src="./lib/config.js"></script>
+    <script src="../dist/fish-topo.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+</head>
+<body>
+    <div id="main" style="width:1000px;height:900px;"></div>
+
+    <script type="text/javascript">
+        let topo = FishTopo.init(document.getElementById('main'), {
+            renderer: 'svg'
+        });
+
+        for (let i = 0; i < 16; ++i) {
+            let s = 0 + Math.PI / 4 * i;
+            for (let j = 0; j < 16; ++j) {
+                let e = Math.PI / 4 * j;
+                let arc = new FishTopo.Arc({
+                    shape: {
+                        cx: 50 + 50 * i,
+                        cy: 50 + 50 * j,
+                        r: 20
+                    },
+                    style: {
+                        stroke: '#333'
+                    }
+                });
+                topo.add(arc);
+                
+                arc = new FishTopo.Arc({
+                    shape: {
+                        cx: 50 + 50 * i,
+                        cy: 50 + 50 * j,
+                        r: 20,
+                        startAngle: s,
+                        endAngle: e,
+                        clockwise: true
+                    },
+                    style: {
+                        stroke: '#f00',
+                        fill: 'rgba(255, 255, 0, 0.3)'
+                    }
+                });
+                topo.add(arc);
+
+                let text = new FishTopo.Text({
+                    style: {
+                        text: i + ',' + j,
+                        fontSize: 12
+                    },
+                    position: [40 + 50 * i, 40 + 50 * j]
+                });
+                topo.add(text);
+            }
+        }
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Serialization</title>
+    <script src="../dist/fish-topo.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+</head>
+<body>
+    <div id="main" style="width:800px;height:600px;"></div>
+
+    <script type="text/javascript">
+        let topo = FishTopo.init(document.getElementById('main'));
+        
+        // SINGLE OBJECT
+        // let circle = new FishTopo.Circle({
+        //     position: [0, 0],
+        //     scale: [1, 1],
+        //     shape: {
+        //         cx: 50,
+        //         cy: 50,
+        //         r: 50
+        //     },
+        //     style: {
+        //         fill:{
+        //             type:'linear',
+        //             colorStops:[
+        //                 {offset:0,color:'red'},
+        //                 {offset:1,color:'black'}
+        //             ]
+        //         },
+        //         // fill:'#ff0000',
+        //         lineWidth: 5,
+        //         text:'circle',
+        //         textPosition:'inside'
+        //     },
+        //     draggable:true
+        // });
+
+        // let jsonObj=circle.toJSONObject();
+        // console.log(jsonObj);
+        // topo.fromJSONObject(jsonObj);
+
+        // NESTED GROUPS
+
+        // let group1 = new FishTopo.Group({
+        //     draggable: true,
+        //     position: [100, 100],
+        //     shape: {
+        //         width:400,
+        //         height:300
+        //     },
+        //     style: {
+        //         fill:'#ccc'
+        //     }
+        // });
+        // let group2 = new FishTopo.Group({
+        //     draggable: true,
+        //     position: [0, 0],
+        //     shape: {
+        //         width:300,
+        //         height:200
+        //     },
+        //     style: {
+        //         fill:'#ff3300'
+        //     }
+        // });
+        // let group3 = new FishTopo.Group({
+        //     draggable: true,
+        //     position: [0, 0],
+        //     shape: {
+        //         width:200,
+        //         height:100
+        //     },
+        //     style: {
+        //         fill:'#0033ff'
+        //     }
+        // });
+        // let rect = new FishTopo.Rect({
+        //     draggable:true,
+        //     position:[10,10],
+        //     shape: {
+        //         r: 0,
+        //         width: 50,
+        //         height: 50
+        //     },
+        //     style: {
+        //         fill: '#00ff00',
+        //         lineWidth: 5,
+        //         text:'矩形',
+        //         textPosition:'inside'
+        //     }
+        // });
+        // group3.add(rect);
+        // group2.add(group3);
+        // group1.add(group2);
+
+        // let json=group1.toJSONObject();
+        // console.log(json);
+        // topo.fromJSONObject(json);
+
+        // LINKS
+
+        let rect1 = new FishTopo.Rect({
+            draggable:true,
+            linkable:true,
+            position: [50, 50],
+            shape: {
+                r: 0,
+                width: 50,
+                height: 50
+            },
+            style: {
+                fill: '#ff0000',
+                lineWidth: 5,
+                text:'矩形',
+                textPosition:'inside'
+            }
+        });
+
+        let rect2 = new FishTopo.Rect({
+            draggable:true,
+            linkable:true,
+            position: [300, 50],
+            shape: {
+                r: 0,
+                width: 50,
+                height: 50
+            },
+            style: {
+                fill: '#ff0000',
+                lineWidth: 5,
+                text:'矩形',
+                textPosition:'inside'
+            }
+        });
+
+        let link1 = topo.createLink({
+            type:'line',
+            fromEl:rect1,
+            toEl:rect2,
+            fromPosition:'R',
+            toPosition:'L',
+            position: [0, 0],
+            draggable: true,
+            isCable:true,
+            style: {
+                stroke: 'rgba(20, 220, 60, 0.8)',
+                lineWidth: 2
+            },
+            shape: {
+                x1: 0,
+                y1: 0,
+                x2: 10,
+                y2: 0,
+                percent: 1
+            }
+        });
+
+        let data=[rect1.toJSONObject(),rect2.toJSONObject(),link1.toJSONObject()];
+        console.log(data);
+        topo.fromJSONObject(data);
+
+
+        let rect3 = new FishTopo.Rect({
+            draggable:true,
+            linkable:true,
+            position: [300, 200],
+            shape: {
+                r: 0,
+                width: 50,
+                height: 50
+            },
+            style: {
+                fill: '#ff0000',
+                lineWidth: 5,
+                text:'矩形',
+                textPosition:'inside'
+            }
+        });
+
+        let rect4 = new FishTopo.Rect({
+            draggable:true,
+            linkable:true,
+            position: [50, 300],
+            shape: {
+                r: 0,
+                width: 50,
+                height: 50
+            },
+            style: {
+                fill: '#ff0000',
+                lineWidth: 5,
+                text:'矩形',
+                textPosition:'inside'
+            }
+        });
+
+        let link2 = topo.createLink({
+            type:'visio',
+            fromEl:rect3,
+            toEl:rect4,
+            fromPosition:'R',
+            toPosition:'L',
+            position: [0, 0],
+            draggable: true,
+            isCable:true,
+            style: {
+                lineWidth: 2
+            },
+            shape: {
+                points:[
+                    [0,10],
+                    [10,10]
+                ]
+            }
+        });
+        let data1=[rect3.toJSONObject(),rect4.toJSONObject(),link2.toJSONObject()];
+        console.log(data1);
+        topo.fromJSONObject(data1);
+
+        let rect5 = new FishTopo.Rect({
+            draggable:true,
+            linkable:true,
+            position: [50, 500],
+            shape: {
+                r: 0,
+                width: 50,
+                height: 50
+            },
+            style: {
+                fill: '#ff0000',
+                lineWidth: 5,
+                text:'矩形',
+                textPosition:'inside'
+            }
+        });
+        topo.add(rect5);
+
+        let rect6 = new FishTopo.Rect({
+            draggable:true,
+            linkable:true,
+            position: [300, 400],
+            shape: {
+                r: 0,
+                width: 50,
+                height: 50
+            },
+            style: {
+                fill: '#ff0000',
+                lineWidth: 5,
+                text:'矩形',
+                textPosition:'inside'
+            }
+        });
+        topo.add(rect6);
+
+        let link3 = topo.createLink({
+            type:'visio',
+            fromEl:rect5,
+            toEl:rect6,
+            fromPosition:'R',
+            toPosition:'L',
+            position: [0, 0],
+            draggable: true,
+            isCable:true,
+            style: {
+                lineWidth: 2
+            },
+            shape: {
+                points:[
+                    [0,10],
+                    [10,10]
+                ]
+            }
+        });
+        console.log(topo.toJSONObject());
+    </script>
+</body>
+</html>

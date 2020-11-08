@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">var States = require(&quot;./States&quot;);
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError(&quot;Cannot call a class as a function&quot;); } }
+
+function _defineProperties(target, props) { for (var i = 0; i &lt; props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if (&quot;value&quot; in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+<span id='fishTopo-graphic-Stateful'>/**
+</span> * @class fishTopo.graphic.Stateful
+ * 
+ * Stateful mixin for graphic object
+ * 
+ * @docauthor 大漠穷秋 &lt;damoqiongqiu@126.com&gt;
+ */
+var Stateful =
+/*#__PURE__*/
+function () {
+  function Stateful(opts) {
+    _classCallCheck(this, Stateful);
+
+    if (opts.states) {
+      this.initStates(opts.states);
+    }
+  }
+
+  _createClass(Stateful, [{
+    key: &quot;initStates&quot;,
+    value: function initStates(states) {
+      this._states = new States({
+        el: this,
+        states: states
+      });
+    }
+  }, {
+    key: &quot;setState&quot;,
+    value: function setState(name) {
+      this._states &amp;&amp; this._states.setState(name);
+    }
+  }, {
+    key: &quot;getState&quot;,
+    value: function getState() {
+      return this._states &amp;&amp; this._states.getState();
+    }
+  }, {
+    key: &quot;transitionState&quot;,
+    value: function transitionState(name, done) {
+      this._states &amp;&amp; this._states.transitionState(name, done);
+    }
+  }]);
+
+  return Stateful;
+}();
+
+var _default = Stateful;
+module.exports = _default;</pre>
+</body>
+</html>

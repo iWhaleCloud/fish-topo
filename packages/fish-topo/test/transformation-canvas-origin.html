@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Transform Canvas Origin</title>
+    <script src="../dist/fish-topo.js"></script>
+</head>
+<body>
+    <canvas id="main" width="1024" height="800"></canvas>
+
+    <script type="text/javascript">
+        let canvas=document.getElementById("main");
+        let ctx=canvas.getContext('2d');
+        console.log(ctx);
+
+        //@see https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Transformations
+
+        // translate
+        function translateExample() {
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    ctx.save();
+                    ctx.fillStyle = 'rgb(' + (51 * i) + ', ' + (255 - 51 * i) + ', 255)';
+                    ctx.translate(10 + j * 50, 10 + i * 50);
+                    ctx.fillRect(0, 0, 25, 25);
+                    ctx.restore();
+                }
+            }
+        }
+        // translateExample();
+
+        //rotate, getTransform
+        function rotateExample() {
+            ctx.save();
+            ctx.fillStyle = '#0095DD';
+            ctx.fillRect(30, 30, 100, 100); 
+            console.log(ctx.getTransform());
+            ctx.rotate((Math.PI / 180) * 25);
+            console.log(ctx.getTransform());
+            ctx.fillStyle = '#4D4E53';
+            ctx.fillRect(30, 30, 100, 100);
+            ctx.restore();
+        }
+        // rotateExample();
+
+        //skew matrix(1,tan(θy),tan(θx),1,0,0)
+        function skewExample() {
+            ctx.save();
+            ctx.setTransform(1,0,Math.tan(60),1,0,0);
+            ctx.fillStyle = '#0095DD';
+            ctx.fillRect(150, 150, 100, 100); 
+            ctx.restore();
+        }
+        skewExample();
+
+        // transform
+        function transformExample() {
+            var sin = Math.sin(Math.PI / 6);
+            var cos = Math.cos(Math.PI / 6);
+            ctx.translate(100, 100);
+            var c = 0;
+            var i=0;
+            for (; i <= 12; i++) {
+                c = Math.floor(255 / 12 * i);
+                ctx.fillStyle = 'rgb(' + c + ', ' + c + ', ' + c + ')';
+                ctx.fillRect(0, 0, 100, 10);
+                ctx.transform(cos, sin, -sin, cos, 0, 0);
+            }
+            
+            ctx.setTransform(-1, 0, 0, 1, 100, 100);
+            ctx.fillStyle = 'rgba(255, 128, 255, 0.5)';
+            ctx.fillRect(0, 50, 100, 100);
+        }
+        // transformExample();
+    </script>
+</body>
+</html>

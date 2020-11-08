@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Text Rotation</title>
+    <script src="../dist/fish-topo.js"></script>
+</head>
+<body>
+    <div id="main" style="width:1000px;height:800px;"></div>
+    <script type="text/javascript">
+        // This is for test skew/scale/rotation/position/origin.
+        let topo = FishTopo.init(document.getElementById('main'));
+        let rect = new FishTopo.Rect({
+            draggable:true,
+            position:[200,200],
+            shape: {
+                r: 0,
+                width: 100,
+                height: 100
+            },
+            style: {
+                fill: '#ff0000',
+                lineWidth: 5,
+                text:'矩形',
+                textPosition:'inside'
+            }
+        });
+        topo.add(rect);
+
+        // Testing purpose: 
+        // - scaleX changes to 2 between 0ms and 1000ms.
+        // - both scaleX and scaleY change to 2 between 1000ms and 2000ms.
+        // - skewX changes to 2 between 2000ms and 3000ms.
+        // - rotation changes to -Math.PI/2 between 3000ms and 4000ms.
+        // - all the paramaters keep for 1000ms.
+        rect.animate()
+            .when(1000,{
+                scale:[1,1],
+                skew:[0,0],
+                rotation:0
+            })
+            .when(2000,{
+                scale:[2,2],
+                skew:[0,0],
+                rotation:0
+            })
+            .when(3000,{
+                scale:[3,2],
+                skew:[0.5,0],
+                rotation:0
+            })
+            .when(4000,{
+                scale:[2,2],
+                skew:[0,0],
+                rotation:60*Math.PI/180
+            })
+            .when(5000,{
+                scale:[2,2],
+                skew:[2,0],
+                rotation:-Math.PI/2
+            })
+            .start(true);
+    </script>
+</body>
+</html>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">var classUtil = require(&quot;../../utils/class_util&quot;);
+
+var Gradient = require(&quot;./Gradient&quot;);
+
+<span id='fishTopo-graphic-gradient-LinearGradient'>/**
+</span> * @class fishTopo.graphic.gradient.LinearGradient 
+ * @docauthor 大漠穷秋 &lt;damoqiongqiu@126.com&gt;
+ */
+
+<span id='fishTopo-graphic-gradient-LinearGradient-method-constructor'>/**
+</span> * @method constructor LinearGradient
+ * @param {Number} [x=0]
+ * @param {Number} [y=0]
+ * @param {Number} [x2=1]
+ * @param {Number} [y2=0]
+ * @param {Array&lt;Object&gt;} colorStops
+ * @param {Boolean} [globalCoord=false]
+ */
+var LinearGradient = function LinearGradient(x, y, x2, y2, colorStops, globalCoord) {
+  // Should do nothing more in this constructor. Because gradient can be
+  // declard by `color: {type: &#39;linear&#39;, colorStops: ...}`, where
+  // this constructor will not be called.
+  this.x = x == null ? 0 : x;
+  this.y = y == null ? 0 : y;
+  this.x2 = x2 == null ? 1 : x2;
+  this.y2 = y2 == null ? 0 : y2; // Can be cloned
+
+  this.type = &#39;linear&#39;; // If use global coord
+
+  this.global = globalCoord || false;
+  Gradient.call(this, colorStops);
+};
+
+LinearGradient.prototype = {
+  constructor: LinearGradient
+};
+classUtil.inherits(LinearGradient, Gradient);
+var _default = LinearGradient;
+module.exports = _default;</pre>
+</body>
+</html>

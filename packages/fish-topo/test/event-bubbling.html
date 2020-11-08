@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Group</title>
+    <script src="../dist/fish-topo.js"></script>
+</head>
+<body>
+    <div id="main" style="width:1024px;height:800px;"></div>
+    <script type="text/javascript">
+        var topo = FishTopo.init(document.getElementById('main'));
+        var circle = new FishTopo.Circle({
+            scale : [1, 1],
+            shape : {
+                cx : 0,
+                cy : 0,
+                r : 100
+            }
+        });
+
+        var g1 = new FishTopo.Group({
+            position: [100, 100]
+        });
+        g1.add(circle);
+
+        var g2 = new FishTopo.Group();
+        g2.add(g1);
+
+        var g3 = new FishTopo.Group();
+        g3.add(g2);
+
+        var g4 = new FishTopo.Group();
+        g4.add(g3);
+
+        circle.on('click', function(e) {
+            console.log('Circle');
+        });
+        g1.on('click', function(e) {
+            console.log('Group 1');
+        });
+        g2.one('click', function(e) {
+            console.log('Group 2 should be triggered once');
+        });
+        g3.on('click', function(e) {
+            console.log('Group 3');
+            e.cancelBubble = true;
+        });
+        g4.on('click', function(e) {
+            console.log("Group 4 should not be triggered");
+        })
+
+        topo.add(g4);
+    </script>
+</body>
+</html>

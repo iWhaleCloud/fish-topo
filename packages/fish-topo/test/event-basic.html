@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Event</title>
+    <script src="../dist/fish-topo.js"></script>
+</head>
+<body>
+    <div id="main" style="width:1024px;height:800px;"></div>
+    <script type="text/javascript">
+        var topo = FishTopo.init(document.getElementById('main'));
+        var circle1 = new FishTopo.Circle({
+            position:[30,30],
+            shape: {
+                cx:30,
+                cy:30,
+                r: 30
+            },
+            style: {
+                fill: 'blue'
+            },
+            draggable: true
+        });
+
+        var circle3 = new FishTopo.Circle({
+            position:[30,100],
+            shape: {
+                cx:30,
+                cy:30,
+                r: 30
+            },
+            style: {
+                fill: '#ccc'
+            },
+            draggable: true
+        });
+
+        var circle2 = new FishTopo.Circle({
+            position:[300,300],
+            shape: {
+                cx:100,
+                cy:100,
+                r: 100
+            },
+            draggable: true
+        });
+
+        circle1.on('mouseover', function () {
+            topo.host.style.cursor = 'move';
+        });
+        circle1.on('mouseout', function () {
+            topo.host.style.cursor = 'default';
+        });
+
+        circle2.on('dragenter', function () {
+            this.attr({style:{fill:'red'}});
+        }).on('dragleave', function () {
+            this.attr({style:{fill:'black'}});
+        }).on('drop', function () {
+            this.attr({style:{fill:'green'}});
+        });
+
+        topo.add(circle2);
+        topo.add(circle1);
+        topo.add(circle3);
+
+        topo.eventDispatcher.on("click",function(event){
+            console.log(event);
+        });
+
+        circle2.on("click",function(event){
+            console.log(event);
+        })
+    </script>
+</body>
+</html>

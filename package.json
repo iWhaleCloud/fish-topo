@@ -1,0 +1,16 @@
+{
+  "name": "fish-topo",
+  "private": true,
+  "scripts": {
+    "packages:start": "npm run packages:start",
+    "packages:build": "npm run packages:clean && ts-node ./scripts/build.ts",
+    "packages:clean": "rimraf ./packages/*/lib"
+  },
+  "devDependencies": {
+    "lerna": "^3.22.1",
+    "ts-node": "^8.6.2",
+    "typescript": "^3.8.2",
+    "execa": "^4.0.0",
+    "rimraf": "^3.0.2"
+  }
+}

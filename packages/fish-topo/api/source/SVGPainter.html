@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">var _core = require(&quot;./core&quot;);
+
+var createElement = _core.createElement;
+
+var dataUtil = require(&quot;../utils/data_structure_util&quot;);
+
+var Path = require(&quot;../graphic/Path&quot;);
+
+var QImage = require(&quot;../graphic/Image&quot;);
+
+var QText = require(&quot;../graphic/Text&quot;);
+
+var arrayDiff = require(&quot;../utils/array_diff2&quot;);
+
+var GradientManager = require(&quot;./GradientManager&quot;);
+
+var ClippathManager = require(&quot;./ClippathManager&quot;);
+
+var ShadowManager = require(&quot;./ShadowManager&quot;);
+
+var _graphic = require(&quot;./graphic&quot;);
+
+var svgPath = _graphic.path;
+var svgImage = _graphic.image;
+var svgText = _graphic.text;
+
+/* eslint-disable no-unused-vars */
+
+<span id='fishTopo-svg-SVGPainter'>/**
+</span> * @class fishTopo.svg.SVGPainter
+ * 
+ * SVG 画笔。
+ * 
+ * @docauthor 大漠穷秋 damoqiongqiu@126.com
+ */
+
+<span id='fishTopo-svg-SVGPainter-method-getSvgProxy'>/**
+</span> * @private
+ * @method getSvgProxy
+ * 
+ * QImage 映射成 svgImage，ZText 映射成 svgText，其它所有都映射成 svgPath。
+ * 
+ * @param {Element} el 
+ */
+function getSvgProxy(el) {
+  if (el instanceof Path) {
+    return svgPath;
+  } else if (el instanceof QImage) {
+    return svgImage;
+  } else if (el instanceof QText) {
+    return svgText;
+  }
+
+  return svgPath;
+}
+
+function checkParentAvailable(parent, child) {
+  return child &amp;&amp; parent &amp;&amp; child.parentNode !== parent;
+}
+
+function insertAfter(parent, child, prevSibling) {
+  if (checkParentAvailable(parent, child) &amp;&amp; prevSibling) {
+    var nextSibling = prevSibling.nextSibling;
+    nextSibling ? parent.insertBefore(child, nextSibling) : parent.appendChild(child);
+  }
+}
+
+function prepend(parent, child) {
+  if (checkParentAvailable(parent, child)) {
+    var firstChild = parent.firstChild;
+    firstChild ? parent.insertBefore(child, firstChild) : parent.appendChild(child);
+  }
+}
+
+function remove(parent, child) {
+  if (child &amp;&amp; parent &amp;&amp; child.parentNode === parent) {
+    parent.removeChild(child);
+  }
+}
+
+function getTextSvgElement(displayable) {
+  return displayable.__textSvgEl;
+}
+
+function getSvgElement(displayable) {
+  return displayable.__svgEl;
+}
+<span id='fishTopo-svg-SVGPainter-method-constructor'>/**
+</span> * @method constructor SVGPainter
+ * @param {HTMLElement} host
+ * @param {fishTopo.core.Storage} storage
+ * @param {Object} opts
+ */
+
+
+var SVGPainter = function SVGPainter(host, storage) {
+  var opts = arguments.length &gt; 2 &amp;&amp; arguments[2] !== undefined ? arguments[2] : {};
+  var topoId = arguments.length &gt; 3 ? arguments[3] : undefined;
+  opts = dataUtil.extend({}, opts);
+  this._opts = opts;
+  this.host = host;
+  this.storage = storage;
+  this._visibleList = [];
+  var svgRoot = createElement(&#39;svg&#39;);
+  svgRoot.setAttribute(&#39;xmlns&#39;, &#39;http://www.w3.org/2000/svg&#39;);
+  svgRoot.setAttribute(&#39;version&#39;, &#39;1.1&#39;);
+  svgRoot.setAttribute(&#39;baseProfile&#39;, &#39;full&#39;);
+  svgRoot.style.cssText = &#39;user-select:none;position:absolute;left:0;top:0;&#39;;
+  this.gradientManager = new GradientManager(topoId, svgRoot);
+  this.clipPathManager = new ClippathManager(topoId, svgRoot);
+  this.shadowManager = new ShadowManager(topoId, svgRoot);
+  this._svgRoot = svgRoot;
+  var div = document.createElement(&#39;div&#39;);
+  div.style.cssText = &#39;overflow:hidden;position:relative&#39;;
+  this._host = div;
+  this.host.appendChild(div);
+
+  this._host.appendChild(svgRoot);
+
+  this.resize(opts.width, opts.height);
+};
+
+SVGPainter.prototype = {
+  constructor: SVGPainter,
+
+<span id='fishTopo-svg-SVGPainter-method-getType'>  /**
+</span>   * @method getType
+   */
+  getType: function getType() {
+    return &#39;svg&#39;;
+  },
+
+<span id='fishTopo-svg-SVGPainter-method-getHost'>  /**
+</span>   * @method getHost
+   */
+  getHost: function getHost() {
+    return this._host;
+  },
+
+<span id='fishTopo-svg-SVGPainter-method-getViewportRootOffset'>  /**
+</span>   * @method getViewportRootOffset
+   */
+  getViewportRootOffset: function getViewportRootOffset() {
+    var viewportRoot = this.getViewportRoot();
+
+    if (viewportRoot) {
+      return {
+        offsetLeft: viewportRoot.offsetLeft || 0,
+        offsetTop: viewportRoot.offsetTop || 0
+      };
+    }
+  },
+
+<span id='fishTopo-svg-SVGPainter-method-refresh'>  /**
+</span>   * @method refresh
+   */
+  refresh: function refresh() {
+    var list = this.storage.getDisplayList(true);
+
+    this._paintList(list);
+  },
+
+<span id='fishTopo-svg-SVGPainter-method-setBackgroundColor'>  /**
+</span>   * @method setBackgroundColor
+   */
+  setBackgroundColor: function setBackgroundColor(backgroundColor) {
+    // TODO gradient
+    this._host.style.background = backgroundColor;
+  },
+
+<span id='fishTopo-svg-SVGPainter-method-_paintList'>  /**
+</span>   * @private
+   * @method _paintList
+   */
+  _paintList: function _paintList(list) {
+    this.gradientManager.markAllUnused();
+    this.clipPathManager.markAllUnused();
+    this.shadowManager.markAllUnused();
+    var svgRoot = this._svgRoot;
+    var visibleList = this._visibleList;
+    var listLen = list.length;
+    var newVisibleList = [];
+    var i;
+    var svgElement;
+    var textSvgElement;
+
+    for (i = 0; i &lt; listLen; i++) {
+      var displayable = list[i];
+      var svgProxy = getSvgProxy(displayable);
+      svgElement = getSvgElement(displayable) || getTextSvgElement(displayable);
+
+      if (!displayable.invisible) {
+        if (displayable.__dirty) {
+          svgProxy &amp;&amp; svgProxy.render(displayable); // Update clipPath
+
+          this.clipPathManager.update(displayable); // Update gradient and shadow
+
+          if (displayable.style.fill &amp;&amp; displayable.style.stroke) {
+            this.gradientManager.update(displayable.style.fill);
+            this.gradientManager.update(displayable.style.stroke);
+          }
+
+          this.shadowManager.update(svgElement, displayable);
+          displayable.__dirty = false;
+        }
+
+        newVisibleList.push(displayable);
+      }
+    }
+
+    var diff = arrayDiff(visibleList, newVisibleList);
+    var prevSvgElement; // First do remove, in case element moved to the head and do remove
+    // after add
+
+    for (i = 0; i &lt; diff.length; i++) {
+      var item = diff[i];
+
+      if (item.removed) {
+        for (var k = 0; k &lt; item.count; k++) {
+          var _displayable = visibleList[item.indices[k]];
+          svgElement = getSvgElement(_displayable);
+          textSvgElement = getTextSvgElement(_displayable);
+          remove(svgRoot, svgElement);
+          remove(svgRoot, textSvgElement);
+        }
+      }
+    }
+
+    for (i = 0; i &lt; diff.length; i++) {
+      var _item = diff[i];
+
+      if (_item.added) {
+        for (var _k = 0; _k &lt; _item.count; _k++) {
+          var _displayable2 = newVisibleList[_item.indices[_k]];
+          svgElement = getSvgElement(_displayable2);
+          textSvgElement = getTextSvgElement(_displayable2);
+          prevSvgElement ? insertAfter(svgRoot, svgElement, prevSvgElement) : prepend(svgRoot, svgElement);
+
+          if (svgElement) {
+            insertAfter(svgRoot, textSvgElement, svgElement);
+          } else if (prevSvgElement) {
+            insertAfter(svgRoot, textSvgElement, prevSvgElement);
+          } else {
+            prepend(svgRoot, textSvgElement);
+          } // Insert text
+
+
+          insertAfter(svgRoot, textSvgElement, svgElement);
+          prevSvgElement = textSvgElement || svgElement || prevSvgElement; // fishTopo.Text only create textSvgElement.
+
+          this.gradientManager.addWithoutUpdate(svgElement || textSvgElement, _displayable2);
+          this.shadowManager.addWithoutUpdate(svgElement || textSvgElement, _displayable2);
+          this.clipPathManager.markUsed(_displayable2);
+        }
+      } else if (!_item.removed) {
+        for (var _k2 = 0; _k2 &lt; _item.count; _k2++) {
+          var _displayable3 = newVisibleList[_item.indices[_k2]];
+          svgElement = getSvgElement(_displayable3);
+          textSvgElement = getTextSvgElement(_displayable3);
+          svgElement = getSvgElement(_displayable3);
+          textSvgElement = getTextSvgElement(_displayable3);
+          this.gradientManager.markUsed(_displayable3);
+          this.gradientManager.addWithoutUpdate(svgElement || textSvgElement, _displayable3);
+          this.shadowManager.markUsed(_displayable3);
+          this.shadowManager.addWithoutUpdate(svgElement || textSvgElement, _displayable3);
+          this.clipPathManager.markUsed(_displayable3);
+
+          if (textSvgElement) {
+            // Insert text.
+            insertAfter(svgRoot, textSvgElement, svgElement);
+          }
+
+          prevSvgElement = svgElement || textSvgElement || prevSvgElement;
+        }
+      }
+    }
+
+    this.gradientManager.removeUnused();
+    this.clipPathManager.removeUnused();
+    this.shadowManager.removeUnused();
+    this._visibleList = newVisibleList;
+  },
+
+<span id='fishTopo-svg-SVGPainter-method-_paintList'>  /**
+</span>   * @private
+   * @method _paintList
+   */
+  _getDefs: function _getDefs(isForceCreating) {
+    var svgRoot = this._svgRoot;
+
+    var defs = this._svgRoot.getElementsByTagName(&#39;defs&#39;);
+
+    if (defs.length !== 0) {
+      return defs[0];
+    } // Not exist
+
+
+    if (!isForceCreating) {
+      return null;
+    }
+
+    defs = svgRoot.insertBefore(createElement(&#39;defs&#39;), // Create new tag
+    svgRoot.firstChild // Insert in the front of svg
+    );
+
+    if (!defs.contains) {
+      // IE doesn&#39;t support contains method
+      defs.contains = function (el) {
+        var children = defs.children;
+
+        if (!children) {
+          return false;
+        }
+
+        for (var i = children.length - 1; i &gt;= 0; --i) {
+          if (children[i] === el) {
+            return true;
+          }
+        }
+
+        return false;
+      };
+    }
+
+    return defs;
+  },
+
+<span id='fishTopo-svg-SVGPainter-method-resize'>  /**
+</span>   * @method resize
+   */
+  resize: function resize(width, height) {
+    var viewport = this._host; // FIXME Why ?
+
+    viewport.style.display = &#39;none&#39;; // Save input w/h
+
+    var opts = this._opts;
+    width != null &amp;&amp; (opts.width = width);
+    height != null &amp;&amp; (opts.height = height);
+    width = this._getSize(0);
+    height = this._getSize(1);
+    viewport.style.display = &#39;&#39;;
+
+    if (this._width !== width || this._height !== height) {
+      this._width = width;
+      this._height = height;
+      var viewportStyle = viewport.style;
+      viewportStyle.width = width + &#39;px&#39;;
+      viewportStyle.height = height + &#39;px&#39;;
+      var svgRoot = this._svgRoot; // Set width by &#39;svgRoot.width = width&#39; is invalid
+
+      svgRoot.setAttribute(&#39;width&#39;, width);
+      svgRoot.setAttribute(&#39;height&#39;, height);
+    }
+  },
+
+<span id='fishTopo-svg-SVGPainter-method-getWidth'>  /**
+</span>   * @method getWidth
+   * 获取绘图区域宽度
+   */
+  getWidth: function getWidth() {
+    return this._width;
+  },
+
+<span id='fishTopo-svg-SVGPainter-method-getHeight'>  /**
+</span>   * @method getHeight
+   * 获取绘图区域高度
+   */
+  getHeight: function getHeight() {
+    return this._height;
+  },
+
+<span id='fishTopo-svg-SVGPainter-method-_getSize'>  /**
+</span>   * @private
+   * @method _getSize
+   */
+  _getSize: function _getSize(whIdx) {
+    var opts = this._opts;
+    var wh = [&#39;width&#39;, &#39;height&#39;][whIdx];
+    var cwh = [&#39;clientWidth&#39;, &#39;clientHeight&#39;][whIdx];
+    var plt = [&#39;paddingLeft&#39;, &#39;paddingTop&#39;][whIdx];
+    var prb = [&#39;paddingRight&#39;, &#39;paddingBottom&#39;][whIdx];
+
+    if (opts[wh] != null &amp;&amp; opts[wh] !== &#39;auto&#39;) {
+      return parseFloat(opts[wh]);
+    }
+
+    var host = this.host; // IE8 does not support getComputedStyle, but it use VML.
+
+    var stl = document.defaultView.getComputedStyle(host);
+    return (host[cwh] || dataUtil.parseInt10(stl[wh]) || dataUtil.parseInt10(host.style[wh])) - (dataUtil.parseInt10(stl[plt]) || 0) - (dataUtil.parseInt10(stl[prb]) || 0) | 0;
+  },
+
+<span id='fishTopo-svg-SVGPainter-method-dispose'>  /**
+</span>   * @method dispose
+   */
+  dispose: function dispose() {
+    this.host.innerHTML = &#39;&#39;;
+    this._svgRoot = this._host = this.storage = null;
+  },
+
+<span id='fishTopo-svg-SVGPainter-method-clear'>  /**
+</span>   * @method clear
+   */
+  clear: function clear() {
+    if (this._host) {
+      this.host.removeChild(this._host);
+    }
+  },
+
+<span id='fishTopo-svg-SVGPainter-method-pathToDataUrl'>  /**
+</span>   * @method pathToDataUrl
+   */
+  pathToDataUrl: function pathToDataUrl() {
+    this.refresh();
+    var html = this._svgRoot.outerHTML;
+    return &#39;data:image/svg+xml;charset=UTF-8,&#39; + html;
+  }
+}; // Not supported methods
+
+function createMethodNotSupport(method) {
+  return function () {
+    console.log(&#39;In SVG mode painter not support method &quot;&#39; + method + &#39;&quot;&#39;);
+  };
+} // Unsuppoted methods
+
+
+[&#39;getLayer&#39;, &#39;insertLayer&#39;, &#39;eachLayer&#39;, &#39;eachBuiltinLayer&#39;, &#39;eachOtherLayer&#39;, &#39;getLayers&#39;, &#39;modLayer&#39;, &#39;delLayer&#39;, &#39;clearLayer&#39;, &#39;toDataURL&#39;, &#39;pathToImage&#39;].forEach(function (name, index) {
+  SVGPainter.prototype[name] = createMethodNotSupport(name);
+});
+var _default = SVGPainter;
+module.exports = _default;</pre>
+</body>
+</html>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Animation2</title>
+    <script src="../dist/fish-topo.js"></script>
+</head>
+<body>
+    <div id="main" style="width:600px;height:400px;"></div>
+    <script type="text/javascript">
+        // 初始化qrenderer
+        let topo = FishTopo.init(document.getElementById('main'));
+
+        let polygon = new FishTopo.Polygon({
+            shape: {
+                points: []
+            },
+            position: [100, 100],
+            scale: [1, 1],
+            style: {
+                fill: 'red'
+            }
+        });
+
+        topo.add(polygon);
+
+        setInterval(function () {
+            let len = Math.ceil(Math.random() * 50);
+            let points = [];
+            let r = (Math.random() * 150);
+            for (let i = 0; i <= len; i++) {
+                let phi = i / len * Math.PI * 2;
+                let x = Math.cos(phi) * r + 100;
+                let y = Math.sin(phi) * r + 100;
+                points.push([x, y]);
+            }
+            polygon.animate()
+                .when(500,{
+                    shape:{
+                        points: points
+                    }
+                })
+                .start(false,'cubicOut');
+        }, 1000);
+    </script>
+</body>
+</html>

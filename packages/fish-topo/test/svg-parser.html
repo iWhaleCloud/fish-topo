@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Parse SVG</title>
+    <script src="../dist/fish-topo.js"></script>
+</head>
+<body>
+    <style>
+        html, body, #main {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+        }
+    </style>
+    <div id="main"></div>
+    <script type="text/javascript">
+        var topo = FishTopo.init(document.getElementById('main'));
+
+        fetch('./data/svg/Tehran_topo.svg')
+            .then(response => response.text())
+            .then(FishTopo.parseSVG)
+            .then(result => {
+                result.root.scale = [0.4, 0.4];
+                topo.add(result.root);
+            });
+    </script>
+</body>
+</html>

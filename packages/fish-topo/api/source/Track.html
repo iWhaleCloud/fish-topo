@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">var colorUtil = require(&quot;../utils/color_util&quot;);
+
+var dataUtil = require(&quot;../utils/data_structure_util&quot;);
+
+var Timeline = require(&quot;./Timeline&quot;);
+
+var _constants = require(&quot;../utils/constants&quot;);
+
+var mathMin = _constants.mathMin;
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError(&quot;Cannot call a class as a function&quot;); } }
+
+function _defineProperties(target, props) { for (var i = 0; i &lt; props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if (&quot;value&quot; in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+<span id='fishTopo-animation-Track'>/**
+</span> * @class fishTopo.animation.Track
+ * There is an one-to-one correspondence between a track and a property of an element.
+ * There are many properties on an element, multiple properties can change at the same time during the animation process.
+ * Each property naturally becomes a track, all these changing processes will be encapsulated in the Track class.
+ * 
+ * 
+ * Track, 轨道，与元素（Element）上可以用来进行动画的属性一一对应。
+ * 元素上存在很多种属性，在动画过程中，可能会有多种属性同时发生变化，
+ * 每一种属性天然成为一条动画轨道，把这些轨道上的变化过程封装在 Track 类中。
+ * 
+ * @author 大漠穷秋 &lt;damoqiongqiu@126.com&gt;
+ * @docauthor 大漠穷秋 &lt;damoqiongqiu@126.com&gt;
+ */
+var Track =
+/*#__PURE__*/
+function () {
+<span id='fishTopo-animation-Track-method-constructor'>  /**
+</span>   * @method constructor Track
+   * @param {Object} options 
+   */
+  function Track(options) {
+    _classCallCheck(this, Track);
+
+    this.element = options.element;
+    this.path = options.path;
+    this.delay = options.delay;
+    this.currentValue = null;
+    this.isFinished = false;
+    this.keyframes = [];
+    this.timeline;
+  }
+<span id='fishTopo-animation-Track-method-addKeyFrame'>  /**
+</span>   * @method addKeyFrame
+   * Add a key frame.
+   * 
+   * 
+   * 添加关键帧。
+   * @param {Object} kf 数据结构为 {time:0,value:0}
+   */
+
+
+  _createClass(Track, [{
+    key: &quot;addKeyFrame&quot;,
+    value: function addKeyFrame(kf) {
+      this.keyframes.push(kf);
+    }
+<span id='fishTopo-animation-Track-method-nextFrame'>    /**
+</span>     * @method nextFrame
+     * Enter the next frame.
+     * 
+     * 
+     * 进入下一帧。
+     * @param {Number} time  当前时间
+     * @param {Number} delta 时间偏移量
+     */
+
+  }, {
+    key: &quot;nextFrame&quot;,
+    value: function nextFrame(time, delta) {
+      if (!this.timeline) {
+        return;
+      }
+
+      var result = this.timeline.nextFrame(time, delta);
+
+      if (dataUtil.isString(result) &amp;&amp; result === &#39;destroy&#39;) {
+        this.isFinished = true;
+      } // console.log(`result=${result}`);
+
+
+      return result;
+    }
+<span id='fishTopo-animation-Track-method-fire'>    /**
+</span>     * @method fire
+     * Fire an event.
+     * 
+     * 
+     * 触发事件。
+     * @param {String} eventType 
+     * @param {Object} arg 
+     */
+
+  }, {
+    key: &quot;fire&quot;,
+    value: function fire(eventType, arg) {
+      this.timeline.fire(eventType, arg);
+    }
+<span id='fishTopo-animation-Track-method-start'>    /**
+</span>     * @method start
+     * Start the animation.
+     * 
+     * 
+     * 开始动画。
+     * @param {String} easing 缓动函数名称
+     * @param {Boolean} forceAnimate 是否强制开启动画 
+     */
+
+  }, {
+    key: &quot;start&quot;,
+    value: function start() {
+      var loop = arguments.length &gt; 0 &amp;&amp; arguments[0] !== undefined ? arguments[0] : false;
+      var easing = arguments.length &gt; 1 &amp;&amp; arguments[1] !== undefined ? arguments[1] : &#39;&#39;;
+      var forceAnimate = arguments.length &gt; 2 &amp;&amp; arguments[2] !== undefined ? arguments[2] : false;
+
+      var options = this._parseKeyFrames(easing, this.path, loop, forceAnimate); //如果传入的参数不正确，则无法构造实例
+
+
+      if (!options) {
+        return null;
+      }
+
+      var timeline = new Timeline(options);
+      this.timeline = timeline;
+    }
+<span id='fishTopo-animation-Track-method-stop'>    /**
+</span>     * @method stop
+     * Stop the animation
+     * 
+     * 
+     * 停止动画。
+     * @param {Boolean} forwardToLast 是否快进到最后一帧 
+     */
+
+  }, {
+    key: &quot;stop&quot;,
+    value: function stop(forwardToLast) {
+      if (forwardToLast) {
+        // Move to last frame before stop
+        this.timeline &amp;&amp; this.timeline.onframe(this.element, 1);
+      }
+    }
+<span id='fishTopo-animation-Track-method-pause'>    /**
+</span>     * @method pause
+     * Pause the animation
+     * 
+     * 
+     * 暂停。
+     */
+
+  }, {
+    key: &quot;pause&quot;,
+    value: function pause() {
+      this.timeline.pause();
+    }
+<span id='fishTopo-animation-Track-method-resume'>    /**
+</span>     * @method resume
+     * Resume the animation.
+     * 
+     * 
+     * 重启。
+     */
+
+  }, {
+    key: &quot;resume&quot;,
+    value: function resume() {
+      this.timeline.resume();
+    }
+<span id='fishTopo-animation-Track-method-_parseKeyFrames'>    /**
+</span>     * @private
+     * @method _parseKeyFrames
+     * Parse the keyframes, create the timelines.
+     * 
+     * 
+     * 解析关键帧，创建时间线。
+     * @param {String} easing
+     * @param {String} path
+     * @param {Boolean} forceAnimate 
+     */
+
+  }, {
+    key: &quot;_parseKeyFrames&quot;,
+    value: function _parseKeyFrames(easing, path, loop, forceAnimate) {
+      var self = this;
+      var element = this.element;
+      var useSpline = easing === &#39;spline&#39;;
+      var kfLength = this.keyframes.length;
+
+      if (!kfLength) {
+        return;
+      } // Guess data type
+
+
+      var firstVal = this.keyframes[0].value;
+      var isValueArray = dataUtil.isArrayLike(firstVal);
+      var isValueColor = false;
+      var isValueString = false; // For vertices morphing
+
+      var arrDim = isValueArray ? dataUtil.getArrayDim(this.keyframes) : 0;
+      this.keyframes.sort(function (a, b) {
+        return a.time - b.time;
+      });
+      var trackMaxTime = this.keyframes[kfLength - 1].time;
+      var kfPercents = [];
+      var kfValues = [];
+      var prevValue = this.keyframes[0].value;
+      var isAllValueEqual = true;
+
+      for (var i = 0; i &lt; kfLength; i++) {
+        kfPercents.push(this.keyframes[i].time / trackMaxTime); // Assume value is a color when it is a string
+
+        var value = this.keyframes[i].value; // Check if value is equal, deep check if value is array
+
+        if (!(isValueArray &amp;&amp; dataUtil.isArraySame(value, prevValue, arrDim) || !isValueArray &amp;&amp; value === prevValue)) {
+          isAllValueEqual = false;
+        }
+
+        prevValue = value; // Try converting a string to a color array
+
+        if (typeof value === &#39;string&#39;) {
+          var colorArray = colorUtil.parse(value);
+
+          if (colorArray) {
+            value = colorArray;
+            isValueColor = true;
+          } else {
+            isValueString = true;
+          }
+        }
+
+        kfValues.push(value);
+      }
+
+      if (!forceAnimate &amp;&amp; isAllValueEqual) {
+        return;
+      }
+
+      var lastValue = kfValues[kfLength - 1]; // Polyfill array and NaN value
+
+      for (var _i = 0; _i &lt; kfLength - 1; _i++) {
+        if (isValueArray) {
+          dataUtil.fillArr(kfValues[_i], lastValue, arrDim);
+        } else {
+          if (isNaN(kfValues[_i]) &amp;&amp; !isNaN(lastValue) &amp;&amp; !isValueString &amp;&amp; !isValueColor) {
+            kfValues[_i] = lastValue;
+          }
+        }
+      }
+
+      if (isValueArray) {
+        var arr = dataUtil.getAttrByPath(element, path);
+        dataUtil.fillArr(arr, lastValue, arrDim);
+      } // Cache the key of last frame to speed up when
+      // animation playback is sequency
+
+
+      var lastFrame = 0;
+      var lastFramePercent = 0;
+      var start;
+      var w;
+      var p0;
+      var p1;
+      var p2;
+      var p3;
+      var rgba = [0, 0, 0, 0];
+
+      var onframe = function onframe(element, percent) {
+        // Find the range keyframes
+        // kf1-----kf2---------current--------kf3
+        // find kf2 and kf3 and do interpolation
+        var frame; // In the easing function like elasticOut, percent may less than 0
+
+        if (percent &lt; 0) {
+          frame = 0;
+        } else if (percent &lt; lastFramePercent) {
+          // Start from next key
+          // PENDING start from lastFrame ?
+          start = mathMin(lastFrame + 1, kfLength - 1);
+
+          for (frame = start; frame &gt;= 0; frame--) {
+            if (kfPercents[frame] &lt;= percent) {
+              break;
+            }
+          } // PENDING really need to do this ?
+
+
+          frame = mathMin(frame, kfLength - 2);
+        } else {
+          for (frame = lastFrame; frame &lt; kfLength; frame++) {
+            if (kfPercents[frame] &gt; percent) {
+              break;
+            }
+          }
+
+          frame = mathMin(frame - 1, kfLength - 2);
+        }
+
+        lastFrame = frame;
+        lastFramePercent = percent;
+        var range = kfPercents[frame + 1] - kfPercents[frame];
+
+        if (range === 0) {
+          return;
+        } else {
+          w = (percent - kfPercents[frame]) / range;
+        }
+
+        if (useSpline) {
+          p1 = kfValues[frame];
+          p0 = kfValues[frame === 0 ? frame : frame - 1];
+          p2 = kfValues[frame &gt; kfLength - 2 ? kfLength - 1 : frame + 1];
+          p3 = kfValues[frame &gt; kfLength - 3 ? kfLength - 1 : frame + 2];
+
+          if (isValueArray) {
+            var _arr = dataUtil.getAttrByPath(element, path);
+
+            dataUtil.catmullRomInterpolateArray(p0, p1, p2, p3, w, w * w, w * w * w, _arr, arrDim);
+            self.currentValue = _arr;
+            element.dirty();
+          } else {
+            var _value;
+
+            if (isValueColor) {
+              _value = dataUtil.catmullRomInterpolateArray(p0, p1, p2, p3, w, w * w, w * w * w, rgba, 1);
+              _value = dataUtil.rgba2String(rgba);
+            } else if (isValueString) {
+              // String is step(0.5)
+              _value = dataUtil.interpolateString(p1, p2, w);
+            } else {
+              _value = dataUtil.catmullRomInterpolate(p0, p1, p2, p3, w, w * w, w * w * w);
+            }
+
+            dataUtil.setAttrByPath(element, path, _value);
+            self.currentValue = _value;
+            element.dirty();
+          }
+        } else {
+          if (isValueArray) {
+            var _arr2 = dataUtil.getAttrByPath(element, path);
+
+            dataUtil.interpolateArray(kfValues[frame], kfValues[frame + 1], w, _arr2, arrDim);
+            self.currentValue = _arr2;
+            element.dirty();
+          } else {
+            var _value2;
+
+            if (isValueColor) {
+              dataUtil.interpolateArray(kfValues[frame], kfValues[frame + 1], w, rgba, 1);
+              _value2 = dataUtil.rgba2String(rgba);
+            } else if (isValueString) {
+              // String is step(0.5)
+              _value2 = dataUtil.interpolateString(kfValues[frame], kfValues[frame + 1], w);
+            } else {
+              _value2 = dataUtil.interpolateNumber(kfValues[frame], kfValues[frame + 1], w);
+            }
+
+            dataUtil.setAttrByPath(element, path, _value2);
+            self.currentValue = _value2;
+            element.dirty();
+          }
+        }
+      };
+
+      var options = {
+        element: this.element,
+        lifeTime: trackMaxTime,
+        loop: loop,
+        delay: this.delay,
+        onframe: onframe,
+        easing: easing &amp;&amp; easing !== &#39;spline&#39; ? easing : &#39;Linear&#39;
+      };
+      return options;
+    }
+  }]);
+
+  return Track;
+}();
+
+module.exports = Track;</pre>
+</body>
+</html>

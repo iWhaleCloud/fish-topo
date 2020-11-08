@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Animation</title>
+    <script src="../dist/fish-topo.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+        html, body, #main {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="main"></div>
+    <script type="text/javascript">
+        let main = document.getElementById('main');
+        let topo = FishTopo.init(main);
+
+        let circle = new FishTopo.Circle({
+            position: [0, 0],
+            scale: [1, 1],
+            shape: {
+                cx: 50,
+                cy: 50,
+                r: 50
+            },
+            style: {
+                fill:{
+                    type:'linear',
+                    colorStops:[
+                        {offset:0,color:'red'},
+                        {offset:1,color:'black'}
+                    ]
+                },
+                lineWidth: 5,
+                text:'circle',
+                textPosition:'inside'
+            }
+        });
+        topo.add(circle);
+        
+        // first animation process
+        circle.animate()
+            .when(1000, {
+                position: [200, 0],
+                scale: [2, 1]
+            })
+            .when(2000, {
+                position: [200, 200],
+                scale: [1, 1]
+            })
+            .when(3000, {
+                position: [0, 200],
+                scale: [1, 2]
+            })
+            .when(4000, {
+                position: [0, 0],
+                scale: [1, 1]
+            })
+            .during(function(){
+                console.log(circle.animationProcessList.length);
+            })
+            .done(function(){
+                console.log(circle.animationProcessList.length);
+            })
+            .start();//.start(true)
+
+        //second animation process
+        circle.animate()
+            .when(1000, {
+                position: [500, 0],
+                scale: [2, 1]
+            })
+            .when(2000, {
+                position: [200, 200],
+                scale: [1, 1]
+            })
+            .when(3000, {
+                position: [0, 200],
+                scale: [1, 2]
+            })
+            .when(4000, {
+                position: [0, 0],
+                scale: [1, 1]
+            })
+            .during(function(){
+                console.log(circle.animationProcessList.length);
+            })
+            .done(function(){
+                console.log(circle.animationProcessList.length);
+            })
+            .start();//.start(true)
+    </script>
+</body>
+</html>

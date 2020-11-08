@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">var Path = require(&quot;./Path&quot;);
+
+function _typeof(obj) { &quot;@babel/helpers - typeof&quot;; if (typeof Symbol === &quot;function&quot; &amp;&amp; typeof Symbol.iterator === &quot;symbol&quot;) { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj &amp;&amp; typeof Symbol === &quot;function&quot; &amp;&amp; obj.constructor === Symbol &amp;&amp; obj !== Symbol.prototype ? &quot;symbol&quot; : typeof obj; }; } return _typeof(obj); }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError(&quot;Cannot call a class as a function&quot;); } }
+
+function _defineProperties(target, props) { for (var i = 0; i &lt; props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if (&quot;value&quot; in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _possibleConstructorReturn(self, call) { if (call &amp;&amp; (_typeof(call) === &quot;object&quot; || typeof call === &quot;function&quot;)) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError(&quot;this hasn&#39;t been initialised - super() hasn&#39;t been called&quot;); } return self; }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== &quot;function&quot; &amp;&amp; superClass !== null) { throw new TypeError(&quot;Super expression must either be null or a function&quot;); } subClass.prototype = Object.create(superClass &amp;&amp; superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+<span id='fishTopo-graphic-CompoundPath'>/**
+</span> * @class fishTopo.graphic.CompoundPath 
+ * 
+ * CompoundPath to improve performance.
+ * 
+ * 复合路径，用来提升性能。
+ * 
+ * @docauthor 大漠穷秋 &lt;damoqiongqiu@126.com&gt;
+ */
+var defaultConfig = {
+  shape: {
+    paths: null
+  }
+};
+
+var CompoundPath =
+/*#__PURE__*/
+function (_Path) {
+  _inherits(CompoundPath, _Path);
+
+<span id='fishTopo-graphic-CompoundPath-method-constructor'>  /**
+</span>   * @method constructor CompoundPath
+   * @param {Object} opts 
+   */
+  function CompoundPath(opts) {
+    var _this;
+
+    _classCallCheck(this, CompoundPath);
+
+    _this = _possibleConstructorReturn(this, _getPrototypeOf(CompoundPath).call(this, opts, defaultConfig));
+<span id='fishTopo-graphic-CompoundPath-property-type'>    /**
+</span>     * @property {String} type
+     */
+
+    _this.type = &#39;compound&#39;;
+
+    _this.on(&quot;beforeRender&quot;, _this.beforeRenderHandler);
+
+    _this.on(&quot;afterRender&quot;, _this.afterRenderHandler);
+
+    return _this;
+  }
+<span id='fishTopo-graphic-CompoundPath-method-_updatePathDirty'>  /**
+</span>   * @private
+   * @method _updatePathDirty
+   */
+
+
+  _createClass(CompoundPath, [{
+    key: &quot;_updatePathDirty&quot;,
+    value: function _updatePathDirty() {
+      var dirtyPath = this.__dirtyPath;
+      var paths = this.shape.paths;
+
+      for (var i = 0; i &lt; paths.length; i++) {
+        // Mark as dirty if any subpath is dirty
+        dirtyPath = dirtyPath || paths[i].__dirtyPath;
+      }
+
+      this.__dirtyPath = dirtyPath;
+      this.__dirty = this.__dirty || dirtyPath;
+    }
+<span id='fishTopo-graphic-CompoundPath-method-beforeRenderHandler'>    /**
+</span>     * @private
+     * @method beforeRenderHandler
+     */
+
+  }, {
+    key: &quot;beforeRenderHandler&quot;,
+    value: function beforeRenderHandler() {
+      this._updatePathDirty();
+
+      var paths = this.shape.paths || [];
+      var scale = this.getGlobalScale(); // Update path scale
+
+      for (var i = 0; i &lt; paths.length; i++) {
+        if (!paths[i].path) {
+          paths[i].createPathProxy();
+        }
+
+        paths[i].path.setScale(scale[0], scale[1], paths[i].segmentIgnoreThreshold);
+      }
+    }
+<span id='fishTopo-graphic-CompoundPath-method-afterRenderHandler'>    /**
+</span>     * @private
+     * @method afterRenderHandler
+     */
+
+  }, {
+    key: &quot;afterRenderHandler&quot;,
+    value: function afterRenderHandler() {
+      var paths = this.shape.paths || [];
+
+      for (var i = 0; i &lt; paths.length; i++) {
+        paths[i].__dirtyPath = false;
+      }
+    }
+<span id='fishTopo-graphic-CompoundPath-method-buildPath'>    /**
+</span>     * @method buildPath
+     * 绘制元素路径
+     * @param {Object} ctx 
+     * @param {String} shape 
+     */
+
+  }, {
+    key: &quot;buildPath&quot;,
+    value: function buildPath(ctx, shape) {
+      var paths = shape.paths || [];
+
+      for (var i = 0; i &lt; paths.length; i++) {
+        paths[i].buildPath(ctx, paths[i].shape, true);
+      }
+    }
+<span id='fishTopo-graphic-CompoundPath-method-getBoundingRect'>    /**
+</span>     * @private
+     * @method getBoundingRect
+     */
+
+  }, {
+    key: &quot;getBoundingRect&quot;,
+    value: function getBoundingRect() {
+      this._updatePathDirty();
+
+      return Path.prototype.getBoundingRect.call(this);
+    }
+  }]);
+
+  return CompoundPath;
+}(Path);
+
+module.exports = CompoundPath;</pre>
+</body>
+</html>

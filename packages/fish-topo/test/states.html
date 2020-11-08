@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Image</title>
+    <script src="lib/rollup.browser.js"></script>
+    <script src="lib/requireES.js"></script>
+    <script src="lib/config.js"></script>
+</head>
+<body>
+    <script type="text/javascript">
+
+    requireES([
+        'quark-renderer/src/quark-renderer',
+        'quark-renderer/src/graphic/Image',
+        'quark-renderer/src/graphic/States'
+    ], function(FishTopo, ImageShape, States){
+
+        // 初始化qrenderer
+        var topo = FishTopo.init(document.getElementById("Main"), {
+            renderer: 'canvas'
+        });
+
+        for( var i = 0; i < 10; i ++) {
+            for( var j = 0; j < 10; j++) {
+                var image = new ImageShape({
+                    position: [i * 70, j * 70],
+                    scale: [1, 1],
+                    style: {
+                        x: 0,
+                        y: 0,
+                        image: './data/test.png'
+                    },
+                    onmouseover: function () {
+                        this.states.transitionState('hover');
+                    },
+
+                    onmouseout: function () {
+                        this.states.transitionState('normal');
+                    }
+                });
+
+                image.states = new States({
+                    el: image,
+                    normal: {
+                        style: {
+                            shadowColor: 'black',
+                            width: 50,
+                            height: 50,
+                            shadowBlur: 0
+                        },
+                        z: 0,
+                        transition: '* 200 0 Linear'
+                    },
+                    hover: {
+                        style: {
+                            x: -10,
+                            y: -10,
+                            width: 70,
+                            height: 70,
+                            shadowBlur: 10
+                        },
+                        z: 1
+                    }
+                })
+                topo.add(image);
+            }
+        }
+
+    })
+    </script>
+    <div id="Main" style="width:1000px;height:600px;"></div>
+</body>
+</html>
